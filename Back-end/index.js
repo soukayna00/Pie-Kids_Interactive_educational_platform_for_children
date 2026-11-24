@@ -111,6 +111,19 @@ mongoose.connect(process.env.MONGO_url)
     app.listen(port, '0.0.0.0', () => console.log(`Server is running on port ${port}`));
   })
   .catch((error) => {
-    console.error('MongoDB startup failed:', error.name);
+    const servers = [...(error.reason?.servers?.values() ?? [])];
+    const causes = [error, error.cause, ...servers.flatMap(({ error: serverError }) =>
+      [serverError, serverError?.cause]
+    )].filter(Boolean);
+
+    console.error('MongoDB startup failed:', {
+      topology: error.reason?.type,
+      errors: causes.map((cause) => ({
+        name: cause.name,
+        code: cause.code,
+        codeName: cause.codeName,
+        syscall: cause.syscall,
+      })),
+    });
     process.exitCode = 1;
   });
