@@ -1,86 +1,66 @@
-🎮 PIE Kids
+<p align="center">
+  <img src="./front-end/public/assets/mario-shell.png" width="135" alt="Mario holding a green shell" />
+</p>
 
-**PIE Kids** is an interactive web platform designed to make learning fun and engaging for children.
-The project combines **education and gamification** to create a playful learning experience.
+<h1 align="center">🪙 PIE KIDZ</h1>
 
+<p align="center"><strong>Save for it. Think before you spend. Make a plan.</strong></p>
 
-## 💡 About the Project
+<p align="center">
+  A playful learning platform where kids practice everyday money decisions.
+</p>
 
-PIE Kids aims to provide a child-friendly environment where kids can learn through interaction, games, and visual content.
+<p align="center">
+  <a href="https://pie-kidz-frontend.vercel.app">
+    <img src="https://img.shields.io/badge/▶_Play_the_live_demo-A83226?style=for-the-badge" alt="Play the live demo" />
+  </a>
+</p>
 
-The main goal is to:
+## 🎮 Pick a money mission
 
-* Encourage kids to learn while having fun
-* Improve engagement using interactive UI
-* Create a simple and intuitive experience for young users
+| Mission | What you’ll practice |
+| --- | --- |
+| 🪙 **Save for a Goal** | Pick something you want and figure out how much to set aside each week. |
+| 🛒 **Spend Wisely** | Decide what you need today and what can wait. |
+| 🧩 **Make a Budget** | Give your money a plan before you spend it. |
 
----
+**Try a mission.** You’re saving for something you really want, but you spot a treat you could buy today. Would you buy it, wait, or change your savings plan?
 
-## ✨ Features
+## 🍄 Explore the platform
 
-* 🎨 Kid-friendly and colorful UI
-* 🧠 Interactive learning activities
-* 🎮 Game-inspired experience
-* 📱 Responsive design
-* ⚡ Fast and simple navigation
+- **Students** can browse lessons, enroll in courses, and practice with quizzes.
+- **Educators** can create courses, add chapters and downloadable resources, and build quizzes.
 
----
+## 🛠️ Behind the game
 
-## 🛠️ Tech Stack
+| Layer | Technology |
+| --- | --- |
+| Frontend | React, Vite, React Router |
+| Backend | Node.js, Express, JWT |
+| Database | MongoDB, Mongoose |
+| Local development | Docker Compose |
+| Deployment | Vercel, Render, MongoDB Atlas |
 
-**Frontend**
+## 🚀 Run it locally
 
-*React
-
-**Backend** 
-
-* Node.js / Express
-
-**Database** 
-
-* MongoDB
-
----
--
-
-## Run locally with Docker
-
-Start Docker Desktop and open PowerShell in the `PIE-KIDS` folder.
-On first setup, generate a local JWT secret in the root `.env` file:
+Start Docker Desktop and open PowerShell in the repository root. With Node.js installed, run:
 
 ```powershell
 if (!(Test-Path .env)) {
     $pieKidsSecret = node -p "require('node:crypto').randomBytes(32).toString('hex')"
     "PIE_KIDS_JWT_SECRET=$pieKidsSecret" | Set-Content -Encoding ascii .env
 }
+
 docker compose up --build -d
 ```
 
-Open [PIE Kids](http://localhost:3000). The API is on
-[localhost:4000](http://localhost:4000). Check startup with `docker compose ps`
-and `docker compose logs backend`.
+- **Play locally** at [localhost:3000](http://localhost:3000/)
+- **Check the API** at [localhost:4000/health](http://localhost:4000/health)
 
-Vite watches `front-end/src` and `front-end/public` through Docker bind mounts.
-Save a React, CSS, or image change and the browser updates automatically.
-Rebuild the frontend with `docker compose up -d --build frontend` when you
-change frontend dependencies, the Dockerfile, or the Vite configuration.
+The local MongoDB database starts empty. Create a course in the teacher portal to populate the lesson catalog. To connect to an existing MongoDB instance, set `PIE_KIDS_MONGO_URL` in the root `.env` to a connection string the backend container can reach.
 
-The default MongoDB container starts with an empty database. To use an existing
-MongoDB instance, set `PIE_KIDS_MONGO_URL` in the root `.env` to a connection
-string reachable from the backend container. MongoDB data and uploaded files
-persist across `docker compose down` and subsequent restarts.
+Vite reloads changes in `front-end/src` and `front-end/public`. If you change frontend dependencies, the Dockerfile, or the Vite configuration, rebuild with `docker compose up -d --build frontend`. Use `docker compose logs backend` to check backend startup.
 
 ## 🤝 Contributing
 
-Contributions are welcome!
-Feel free to fork the project and submit a pull request.
-
----
-
-
----
-
-## ⭐ Support
-
-If you like this project, don’t forget to ⭐ the repo!
-
+Fork the repo, make your changes on a branch, and open a pull request.
