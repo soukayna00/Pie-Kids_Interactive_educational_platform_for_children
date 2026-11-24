@@ -1,25 +1,29 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChartLine, faBookOpen, faGift, faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
-// import './sidebar.css'; // Import the CSS file
+import { faBookOpen, faChartLine, faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
+import './sidevar.css';
 
-const Sidebar = () => {
+export default function Sidebar() {
+  const { pathname, hash } = useLocation();
+  const onStudentPage = pathname === '/student';
+  const onCourses = onStudentPage && hash === '#my-courses';
+
   return (
-    <nav className="sidebar">
-      <div className="brand">
-        <h2>student Portal</h2> {/* Change the name here */}
-      </div>
-      <ul>
-        <li><a href="/student"><FontAwesomeIcon icon={faChartLine} /> Dashboard</a></li>
-        <li><a href="/courses"><FontAwesomeIcon icon={faBookOpen} /> My Courses</a></li>
-        {/* <li><a href="/activities"><FontAwesomeIcon icon={faGift} /> Activities</a></li> */}
-        <li><a href="/student/quiz"><FontAwesomeIcon icon={faQuestionCircle} /> Quizzes</a></li>
-      </ul>
-      <div className="upgrade">
-        <button>Get Pro Now</button>
-      </div>
+    <nav className="pie-student__nav" aria-label="Student portal">
+      <h2>Student Portal</h2>
+      <Link to="/student" aria-current={onStudentPage && !onCourses ? 'page' : undefined}>
+        <FontAwesomeIcon icon={faChartLine} aria-hidden="true" />
+        Dashboard
+      </Link>
+      <a href="/student#my-courses" aria-current={onCourses ? 'location' : undefined}>
+        <FontAwesomeIcon icon={faBookOpen} aria-hidden="true" />
+        My Courses
+      </a>
+      <Link to="/student/quiz" aria-current={pathname === '/student/quiz' ? 'page' : undefined}>
+        <FontAwesomeIcon icon={faQuestionCircle} aria-hidden="true" />
+        Quizzes
+      </Link>
     </nav>
   );
-};
-
-export default Sidebar;
+}

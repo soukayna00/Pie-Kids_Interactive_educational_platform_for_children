@@ -1,3 +1,59 @@
-.container{
-    display: flex;
+@import '../Courses/AddCourses.css';
+
+.pie-quiz-builder .pie-quiz-builder__draft,
+.pie-quiz-builder .pie-quiz-builder__question {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.pie-quiz-builder .pie-quiz-builder__draft {
+  padding: 0;
+  border: 0;
+}
+
+.pie-quiz-builder .pie-quiz-builder__question {
+  margin: 0;
+  padding: clamp(12px, 3vw, 20px);
+  background: #fffdf5;
+}
+
+.pie-quiz-builder form label {
+  margin: 0;
+  font-weight: 700;
+}
+
+.pie-quiz-builder__option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.pie-quiz-builder .pie-quiz-builder__correct {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+}
+
+.pie-quiz-builder form .pie-quiz-builder__correct input[type='radio'] {
+  width: 1rem;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--course-red);
+}
+
+.pie-quiz-builder .pie-quiz-builder__question > button {
+  justify-self: start;
+}
+
+.pie-quiz-builder .pie-add-course__panel .pie-quiz-builder__secondary {
+  background: var(--course-cream);
+  color: var(--course-ink);
+}
+
+.pie-quiz-builder .pie-add-course__panel .pie-quiz-builder__secondary:hover:not(:disabled) {
+  background: var(--course-gold);
 }

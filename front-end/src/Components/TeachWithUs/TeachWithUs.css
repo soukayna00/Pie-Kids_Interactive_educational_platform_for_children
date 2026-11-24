@@ -1,95 +1,187 @@
-@font-face {
-    font-family: MarioFont;
-    src: url('C:\Users\PC\PIE KIDS\front-end\src\Components\fonts\SuperMario256.ttf') format('truetype');
+.pie-teach {
+  --teach-ink: #183047;
+  --teach-cream: #fff6df;
+  --teach-red: #a83226;
+  --teach-gold: #f3bc4f;
+  --teach-green: #68a451;
+
+  background: var(--teach-cream);
+  color: var(--teach-ink);
+  font-family: system-ui, sans-serif;
+}
+
+.pie-teach__inner {
+  box-sizing: border-box;
+  width: min(calc(100% - 40px), 1080px);
+  margin-inline: auto;
+}
+
+.pie-teach__hero {
+  background: #deeff8;
+}
+
+.pie-teach__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(24px, 6vw, 80px);
+  padding-block: clamp(32px, 5vw, 64px);
+}
+
+.pie-teach :is(h1, h2) {
+  margin: 0 0 16px;
+  font-family: MarioFont, system-ui, sans-serif;
+  font-weight: 400;
+  line-height: 1.08;
+}
+
+.pie-teach h1 {
+  font-size: clamp(2.35rem, 5vw, 4.8rem);
+}
+
+.pie-teach h1 span {
+  display: block;
+  color: var(--teach-red);
+}
+
+.pie-teach h2 {
+  font-size: clamp(1.6rem, 3vw, 2.35rem);
+}
+
+.pie-teach p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.pie-teach__panel p {
+  max-width: 39ch;
+  font-size: clamp(1rem, 1.55vw, 1.2rem);
+}
+
+.pie-teach__scene {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 14px;
+}
+
+.pie-teach__scene::before {
+  position: absolute;
+  z-index: -1;
+  inset: 8% 5% 15%;
+  background: #a9d9f5;
+  clip-path: polygon(0 12%, 12% 12%, 12% 0, 88% 0, 88% 12%, 100% 12%, 100% 88%, 88% 88%, 88% 100%, 12% 100%, 12% 88%, 0 88%);
+  content: '';
+}
+
+.pie-teach__scene::after {
+  width: 82%;
+  height: 14px;
+  border-top: 5px solid var(--teach-green);
+  background: repeating-linear-gradient(90deg, #bc8053 0 18px, #8d593d 18px 21px);
+  content: '';
+}
+
+.pie-teach__mario {
+  display: block;
+  width: min(100%, 300px);
+  height: auto;
+  max-height: 320px;
+  object-fit: contain;
+}
+
+.pie-teach .pie-teach__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 22px;
+  padding: 8px 15px;
+  border: 2px solid var(--teach-ink);
+  background: var(--teach-red);
+  color: var(--teach-cream);
+  box-shadow: 3px 3px 0 var(--teach-ink);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.pie-teach .pie-teach__action:hover {
+  background: var(--teach-gold);
+  color: var(--teach-ink);
+}
+
+.pie-teach .pie-teach__example {
+  display: table;
+  margin-top: 16px;
+  color: var(--teach-ink);
+  font-weight: 700;
+  text-underline-offset: 4px;
+}
+
+.pie-teach a:focus-visible {
+  outline: 3px solid var(--teach-ink);
+  outline-offset: 4px;
+}
+
+.pie-teach__guide {
+  padding-block: clamp(32px, 5vw, 56px);
+}
+
+.pie-teach .pie-teach__topics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pie-teach .pie-teach__topics > li {
+  min-width: 0;
+  margin: 0;
+  padding: clamp(16px, 2.5vw, 24px);
+  border: 2px solid var(--teach-ink);
+  background: #fffdf4;
+  box-shadow: 4px 4px 0 var(--teach-ink);
+  list-style: none;
+}
+
+.pie-teach__icon {
+  display: block;
+  width: 64px;
+  aspect-ratio: 1;
+  margin-bottom: 10px;
+  background: url('/assets/lesson-pixel-art.png') 0 center / 300% 100% no-repeat;
+}
+
+.pie-teach__icon--spending {
+  background-position-x: 50%;
+}
+
+.pie-teach__icon--budgeting {
+  background-position-x: 100%;
+}
+
+.pie-teach__topics h3 {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+@media (max-width: 700px) {
+  .pie-teach__layout,
+  .pie-teach .pie-teach__topics {
+    grid-template-columns: 1fr;
   }
 
-.teach-with-us {
-    width: 100%;
-    margin: 0 auto;
-    padding-top: 20px;
-    background-color: #007bff; 
-    background-image: url('../../../public/assets/pattern.png'); 
-    background-size: cover; 
-    min-height: 200vh;
- }
-  
-  .heros {
-    text-align: center;
-    display: flex;
-    margin-bottom: 40px;
-    font-size: 36px;
-    color: white;
-    font-family: MarioFont;
+  .pie-teach__scene {
+    width: min(100%, 320px);
+    margin-inline: auto;
   }
 
-  .heros>h1{
-    font-size: 50px;
-    margin-top: 150px;
+  .pie-teach__mario {
+    max-height: 220px;
   }
-  
-  .benefits {
-    margin-bottom: 40px;
-    background-color: #333;
-    border-radius: 20px;
-    border:solid #333 1px;
-
-    padding: 20px;
-    color: #fffefe;
-     background: repeating-linear-gradient(
-    -45deg,
-    #000000e0,
-    #000000d2 4px,
-    #333333db 3px,
-    #333333d8 10px
-  );
-
-
-  }
-  
-  .benefit {
-    margin-bottom: 20px;
-    font-size: 20px;
-
-  }
-  
-  .benefit h3 {
-    color: #007bff;
-  }
-  
-  .cta {
-    text-align: center;
-  }
-  .cta h2{
-    font-size: 50px;
-  }
-  .cta p{
-    font-size: 35px;
-  }
-  
-  .cta button {
-    padding: 10px 10px;
-    background: repeating-linear-gradient(
-      -45deg,
-      #000000e0,
-      #000000d2 4px,
-      #333333db 3px,
-      #333333d8 10px
-    );
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    width: 50%;
-    margin: 10px;
-  }
-  
-  .cta button:hover {
-    background-color: #0056b3;
-  }
-  
-  .section-1{
-    display: flex;
-  }
-  #mario-shell{
-    height: 450px;
-  }
+}

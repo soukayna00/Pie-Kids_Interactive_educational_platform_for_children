@@ -1,50 +1,55 @@
 import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import './navbar.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserPlus, faSignInAlt, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import {
+  faSignInAlt,
+  faSignOutAlt,
+  faUserPlus,
+} from '@fortawesome/free-solid-svg-icons';
 import { AuthContext } from '../../context/AuthContext';
+import './navbar.css';
 
 const Navbar = () => {
   const { authState, setAuthState } = useContext(AuthContext);
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     setAuthState({
       isAuthenticated: false,
       name: '',
-      age: 0
+      age: 0,
     });
     navigate('/login');
   };
 
-  // console.log('AuthState in Navbar:', authState); 
-
   return (
-    <nav className="navbar">
-      <div className="logo">PIE KIDZ</div>
+    <nav className="pie-navbar" aria-label="Main navigation">
+      <Link to="/" className="logo">
+  <img src="/assets/pie-kidz-logo.png" alt="PIE KIDZ home" />
+</Link>
+
       <ul className="nav-links">
         <li><Link to="/">About</Link></li>
         <li><Link to="/courses">Explore</Link></li>
         <li><Link to="/TeachWithUs">Teach with us</Link></li>
-        {/* <li><Link to="/faq">FAQ</Link></li> */}
+
         {authState.isAuthenticated ? (
           <li>
-            <div className="user-info">
-              <button className='btn btn-danger' onClick={handleLogout}><FontAwesomeIcon icon={faSignOutAlt} /> Logout</button> 
-            </div>
+            <button type="button" className="btn btn-danger" onClick={handleLogout}>
+              <FontAwesomeIcon icon={faSignOutAlt} aria-hidden="true" /> Logout
+            </button>
           </li>
         ) : (
           <>
             <li>
               <Link to="/register" className="signup-button">
-                <FontAwesomeIcon icon={faUserPlus} /> Sign Up
+                <FontAwesomeIcon icon={faUserPlus} aria-hidden="true" /> Sign Up
               </Link>
             </li>
             <li>
               <Link to="/login" className="signin-button">
-                <FontAwesomeIcon icon={faSignInAlt} /> Sign In
+                <FontAwesomeIcon icon={faSignInAlt} aria-hidden="true" /> Sign In
               </Link>
             </li>
           </>

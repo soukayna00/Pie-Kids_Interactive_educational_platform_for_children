@@ -1,36 +1,39 @@
-.containers-regist{
-    width: 100%;
-    margin: 0 auto;
-    padding-top: 20px;
-    background-color: white; 
-    /* background-image: url('../../../public/assets/pattern.png');  */
-    background-size: cover; 
-    display: flex;
-    height: 100vh;
+.pie-login.pie-register {
+  display: grid;
+  align-items: center;
+  min-height: 65vh;
+}
+/* Share the PIE KIDZ cursor across public pages and dashboards. */
+@media (hover: hover) and (pointer: fine) {
+  html {
+    cursor: url('/assets/pixel-cursor.png') 2 2, auto;
+  }
+
+  :where(a[href], button:not(:disabled), summary, input[type='checkbox']:not(:disabled), input[type='radio']:not(:disabled), select:not(:disabled)) {
+    cursor: pointer;
+  }
+
+  :where(input:not([type]), input[type='text'], input[type='email'], input[type='password'], input[type='search'], input[type='number'], textarea, [contenteditable='true']) {
+    cursor: text;
+  }
 }
 
-#thekid {
-    height: 450px;
-
-    margin-top: 10px;
-    animation: float 4s ease-in-out infinite; /* Apply float animation */
-}
-label{
-    width: 100%;
-    border-radius: 20px;
-}
-#image-moneys{
-    width: 70px;
-    margin-left: 10px;
+.pie-login .pie-register__layout {
+  width: 100%;
 }
 
-/* Float Animation */
-@keyframes float {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-10px);
-    }}
+@media (prefers-reduced-motion: no-preference) {
+  .pie-login__art img {
+    animation: pie-login-float 2s ease-in-out 2;
+  }
+}
 
-   
+@keyframes pie-login-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}

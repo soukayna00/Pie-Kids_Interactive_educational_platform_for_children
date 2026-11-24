@@ -1,92 +1,91 @@
-import React, { useState } from 'react';
+import { API_BASE_URL } from '../../apiBase.js';
+import React, { useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './Register.css';
 
+export default function Register() {
+  const navigate = useNavigate();
+  const submitting = useRef(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
 
-const Register = () => {
-  const [formData, setFormData] = useState({
-    nom: '',
-    age:'',
-    email: '',
-    motDePasse: '',
-  });
+  async function handleSubmit(event) {
+    event.preventDefault();
+    if (submitting.current) return;
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    const data = Object.fromEntries(new FormData(event.currentTarget));
+    submitting.current = true;
+    setPending(true);
+    setError('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
     try {
-      const response = await fetch('/Etudiants/Register', {
+      const response = await fetch(`${API_BASE_URL}/Etudiants/register`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, age: Number(data.age) }),
       });
-      const data = await response.json();
-      console.log(data); 
-    } catch (error) {
-      console.error('Error:', error);
+
+      if (!response.ok) {
+        setError(
+          response.status === 400
+            ? 'That email is already in use.'
+            : 'We couldn’t create your account. Please try again.',
+        );
+        return;
+      }
+
+      navigate('/login', { replace: true });
+    } catch {
+      setError('We couldn’t reach PIE KIDZ. Please try again.');
+    } finally {
+      submitting.current = false;
+      setPending(false);
     }
-  };
+  }
 
   return (
-  <div className='containers-register'>
-      <div className='header-money'>
-          <img id='image-money' src='/assets/star.png' />
-          {/* <h2>JOIN US NOW !</h2> */}
+    <main className="pie-register">
+      <div className="pie-register__layout">
+        <section className="pie-register__panel" aria-labelledby="register-title">
+          <div className="pie-register__heading">
+            <h1 id="register-title">Join PIE KIDZ</h1>
+            <img src="/assets/star.png" alt="" />
           </div>
-                   <div id='form-registers'>
-      <form onSubmit={handleSubmit}>
-        <div>
-        <h2>JOIN US NOW !</h2> 
-          <label>Enter your Name:</label>
-          <input
-            type="text"
-            name="nom"
-            value={formData.nom}
-            onChange={handleChange}
-          />
+          <p>Create a learner account to start exploring money lessons.</p>
+
+          <form onSubmit={handleSubmit}>
+            <label>
+              Your name
+              <input name="nom" autoComplete="name" required />
+            </label>
+            <label>
+              Your age
+              <input name="age" type="number" min="4" max="18" required />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" autoComplete="email" required />
+            </label>
+            <label>
+              Password
+              <input name="motDePasse" type="password" autoComplete="new-password" required />
+            </label>
+
+            {error && <p className="pie-register__error" role="alert">{error}</p>}
+            <button type="submit" disabled={pending}>
+              {pending ? 'Creating account…' : 'Create Account'}
+            </button>
+          </form>
+
+          <p className="pie-register__signin">
+            Already have an account? <Link to="/login">Sign in</Link>
+          </p>
+        </section>
+
+        <div className="pie-register__art" aria-hidden="true">
+          <img src="/assets/character-group.png" alt="" />
         </div>
-        <div>
-          <label>Your Age:</label>
-          <input
-            type="number"
-            name="age"
-            value={formData.age}
-            onChange={handleChange}  min="4"
-            max="18"
-          />
-        </div>
-        <div>
-          <label> Your Email:</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label>Your Password:</label>
-          <input
-            type="password"
-            name="motDePasse"
-            value={formData.motDePasse}
-            onChange={handleChange}
-          />
-        </div>
-        <button type="submit">Register</button>
-      </form>
       </div>
-
-         
-      <div className='test'> <img id='thekidi' src='/assets/character-group.png' /></div>
-    
-    
-    </div>
+    </main>
   );
-};
-
-export default Register;
+}

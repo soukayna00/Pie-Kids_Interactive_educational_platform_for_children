@@ -1,62 +1,124 @@
-.course-detail {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-  
-  h1 {
-    font-size: 24px;
-    margin-bottom: 10px;
-  }
-  
-  h3 {
-    font-size: 20px;
-    margin-bottom: 10px;
-  }
-  
-  ol {
-    list-style-type: decimal;
-    margin-left: 20px;
-  }
-  
-  ol > li {
-    margin-bottom: 10px;
-  }
-  
-  label {
-    display: block;
-    /* margin-bottom: 5px; */
-    margin: 10px;
-    width: 70%;
-  }
-  
-  input[type="text"],
-  input[type="file"] {
-    width: 90%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  .quill-container {
-    margin-bottom: 10px;
-  }
-  
-  button[type="submit"] {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  button[type="submit"]:hover {
-    background-color: #0056b3;
-  }
-  
-  .error-message {
-    color: red;
-  }
-  
+.pie-course-detail {
+  --detail-ink: #183047;
+  --detail-cream: #fff6df;
+  --detail-red: #a83226;
+  min-height: 68vh;
+  padding: clamp(24px, 5vw, 56px) clamp(16px, 4vw, 48px);
+  background: #deeff8;
+  color: var(--detail-ink);
+  font-family: system-ui, sans-serif;
+}
+
+.pie-course-detail__inner {
+  max-width: 850px;
+  margin-inline: auto;
+}
+
+.pie-course-detail__inner > a {
+  color: inherit;
+  font-weight: 700;
+}
+
+.pie-course-detail__intro,
+.pie-course-detail__panel {
+  margin-top: 20px;
+  padding: clamp(16px, 4vw, 28px);
+  border: 2px solid var(--detail-ink);
+  background: var(--detail-cream);
+  box-shadow: 4px 4px 0 var(--detail-ink);
+  overflow-wrap: anywhere;
+}
+
+.pie-course-detail .pie-course-detail__intro h1 {
+  margin: 0;
+  font: 400 clamp(1.6rem, 4vw, 2.8rem)/1.15 MarioFont, system-ui, sans-serif;
+}
+
+.pie-course-detail__panel h2 {
+  margin: 0 0 12px;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.pie-course-detail__panel ol {
+  margin: 0;
+  padding-inline-start: 24px;
+}
+
+.pie-course-detail__panel li + li {
+  margin-top: 6px;
+}
+
+.pie-course-detail .pie-course-detail__panel form,
+.pie-course-detail .pie-course-detail__panel fieldset {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.pie-course-detail .pie-course-detail__panel label {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  font-weight: 700;
+}
+
+.pie-course-detail__panel h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.pie-course-detail .pie-course-detail__panel input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px;
+  border: 2px solid var(--detail-ink);
+  background: #fffdf5;
+  color: inherit;
+  font: inherit;
+}
+
+.pie-course-detail .quill {
+  background: #fffdf5;
+}
+
+.pie-course-detail .ql-editor {
+  min-height: 160px;
+}
+
+.pie-course-detail .pie-course-detail__inner button:not(.ql-toolbar button) {
+  justify-self: start;
+  width: auto;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 2px solid var(--detail-ink);
+  background: var(--detail-red);
+  color: var(--detail-cream);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.pie-course-detail button:disabled {
+  opacity: 0.65;
+}
+
+.pie-course-detail__error {
+  color: var(--detail-red);
+  font-weight: 700;
+}
+
+.pie-course-detail :is(a, input, button):focus-visible {
+  outline: 2px solid var(--detail-ink);
+  outline-offset: 3px;
+}

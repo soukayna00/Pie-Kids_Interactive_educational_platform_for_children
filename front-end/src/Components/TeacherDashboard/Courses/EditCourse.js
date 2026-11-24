@@ -1,149 +1,142 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { API_BASE_URL } from '../../../apiBase.js';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import axios from 'axios';
 import Sidebar from '../Sidebar/sidebar';
 import './EditCourse.css';
-import axios from 'axios';
+
 
 export default function EditCourse() {
-    const { CourseId } = useParams(); // Destructure to get the courseId directly
-    const [formData, setFormData] = useState({
-        titre: '',
-        Thumbnail: null,
-        description: '',
-        trancheAge: '',
-        Competences: [],
+  const { courseId } = useParams();
+  return <CourseEditor key={courseId} id={courseId} />;
+}
+
+function CourseEditor({ id }) {
+  const [data, setData] = useState(null);
+  const [loadError, setLoadError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
+  const submitting = useRef(false);
+  const safeId = encodeURIComponent(id);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const config = { signal: controller.signal };
+
+    Promise.all([
+      axios.get(`${API_BASE_URL}/cours/${safeId}`, config),
+      axios.get(`${API_BASE_URL}/trancheAge`, config),
+      axios.get(`${API_BASE_URL}/competences/all`, config),
+    ]).then(([course, ages, skills]) => {
+      if (!controller.signal.aborted) {
+        setData({ course: course.data, ages: ages.data, skills: skills.data });
+      }
+    }).catch(() => {
+      if (!controller.signal.aborted) setLoadError(true);
     });
-    const [ageRanges, setAgeRanges] = useState([]);
-    const [skills, setSkills] = useState([]);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        console.log("CourseId:", CourseId); // Log the CourseId to verify extraction
-        const fetchData = async () => {
-            try {
-                console.log(`Fetching course data for course id: ${CourseId}`);
-                const courseResponse = await axios.get(`http://localhost:4000/cours/${CourseId}`);
-                const ageRangesResponse = await axios.get('http://localhost:4000/trancheAge');
-                const skillsResponse = await axios.get('http://localhost:4000/competences/all');
+    return () => controller.abort();
+  }, [safeId, attempt]);
 
-                console.log("Course response data:", courseResponse.data);
-                console.log("Age ranges response data:", ageRangesResponse.data);
-                console.log("Skills response data:", skillsResponse.data);
+  async function save(event) {
+    event.preventDefault();
+    if (submitting.current) return;
 
-                const courseData = courseResponse.data;
-                const ageRangesData = ageRangesResponse.data;
-                const skillsData = skillsResponse.data;
-
-                setFormData({
-                    titre: courseData.titre || '',
-                    description: courseData.description || '',
-                    trancheAge: courseData.trancheAge ? courseData.trancheAge._id : '',
-                    Competences: Array.isArray(courseData.Competences) ? courseData.Competences.map(skill => skill._id) : [],
-                });
-
-                setAgeRanges(ageRangesData);
-                setSkills(skillsData);
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                setError(error.message);
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [CourseId]);
-
-    const handleChange = e => {
-        const { name, value, files } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [name]: files ? files[0] : value,
-        }));
-    };
-
-    const handleCompetencesChange = e => {
-        const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-        setFormData(prevState => ({
-            ...prevState,
-            Competences: selectedOptions,
-        }));
-    };
-
-    const handleSubmit = async e => {
-        e.preventDefault();
-        const data = new FormData();
-        for (let key in formData) {
-            if (Array.isArray(formData[key])) {
-                formData[key].forEach(item => data.append(`${key}[]`, item)); // Append array items correctly
-            } else {
-                data.append(key, formData[key]);
-            }
-        }
-
-        try {
-            console.log('Submitting form data:', formData);
-            const response = await axios.put(`http://localhost:4000/cours/editCourse/${CourseId}`, data);
-            console.log('Response from server:', response);
-            if (response.status !== 200) {
-                throw new Error(`Error updating course: ${response.statusText}`);
-            }
-            const result = response.data;
-            console.log('Course updated successfully:', result);
-            setSuccess('Course updated successfully!');
-            setError(''); // Clear error on success
-        } catch (error) {
-            console.error('Error updating course:', error);
-            setError(error.message);
-            setSuccess(''); // Clear success message on error
-        }
-    };
-
-    if (loading) {
-        return <div>Loading...</div>;
+    const form = event.currentTarget;
+    const body = new FormData(form);
+    const title = String(body.get('titre')).trim();
+    const description = String(body.get('description')).trim();
+    setSaved(false);
+    setError('');
+    if (!title || !description) {
+      setError('Enter a title and description.');
+      return;
     }
 
-    return (
-        <div className="page-container">
-            <Sidebar />
-            <div className="form-container">
-                <form onSubmit={handleSubmit}>
-                    <div>
-                        <label>Title:</label>
-                        <input type="text" name="titre" value={formData.titre} onChange={handleChange} />
-                    </div>
-                    <div>
-                        <label>Thumbnail:</label>
-                        <input type="file" name="Thumbnail" onChange={handleChange} />
-                    </div>
-                    <div>
-                        <label>Description:</label>
-                        <textarea name="description" value={formData.description} onChange={handleChange}></textarea>
-                    </div>
-                    <div>
-                        <label>Tranche d'âge:</label>
-                        <select name="trancheAge" value={formData.trancheAge} onChange={handleChange}>
-                            <option value="">Select an age range</option>
-                            {ageRanges.map(ageRange => (
-                                <option key={ageRange._id} value={ageRange._id}>From {ageRange.ageMin} To {ageRange.ageMax}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label>Competences:</label>
-                        <select name="Competences" value={formData.Competences} onChange={handleCompetencesChange} multiple>
-                            {skills.map(skill => (
-                                <option key={skill._id} value={skill._id}>{skill.Titre}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <button type="submit">Update the course</button>
-                </form>
-                {error && <p className="error">{error}</p>}
-                {success && <p className="success">{success}</p>}
+    body.set('titre', title);
+    body.set('description', description);
+    body.set('Competences', JSON.stringify(body.getAll('Competences')));
+    if (!body.get('Thumbnail')?.name) body.delete('Thumbnail');
+
+    submitting.current = true;
+    setPending(true);
+    try {
+      await axios.put(`${API_BASE_URL}/cours/editCourse/${safeId}`, body, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      form.elements.namedItem('Thumbnail').value = '';
+      setSaved(true);
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || 'We couldn’t save the changes. Please try again.');
+    } finally {
+      submitting.current = false;
+      setPending(false);
+    }
+  }
+
+  const selectedSkills = new Set(data?.course.Competences?.map((skill) => skill?._id ?? skill));
+  const currentAge = data?.course.trancheAge;
+
+  return (
+    <main className="pie-add-course pie-edit-course">
+      <div className="pie-add-course__layout">
+        <Sidebar />
+        <section className="pie-add-course__panel" aria-labelledby="edit-course-title">
+          <Link to="/cours">← Manage Courses</Link>
+          <h1 id="edit-course-title">Edit Course</h1>
+
+          {loadError ? (
+            <div>
+              <p role="alert">We couldn’t load the course or its form options.</p>
+              <button type="button" onClick={() => {
+                setLoadError(false);
+                setAttempt((previous) => previous + 1);
+              }}>Try Again</button>
             </div>
-        </div>
-    );
+          ) : !data ? (
+            <p role="status">Loading course…</p>
+          ) : (
+            <form onSubmit={save} onChange={() => setSaved(false)}>
+              <label>
+                Course title
+                <input name="titre" defaultValue={data.course.titre} required />
+              </label>
+              <label>
+                Description
+                <textarea name="description" defaultValue={data.course.description} rows={4} required />
+              </label>
+              <label>
+                Replace cover image (optional)
+                <input type="file" name="Thumbnail" accept="image/*" />
+              </label>
+              <label>
+                Age range
+                <select name="trancheAge" defaultValue={currentAge?._id ?? currentAge ?? ''}>
+                  <option value="">No age range</option>
+                  {data.ages.map(({ _id, ageMin, ageMax }) => (
+                    <option key={_id} value={_id}>Ages {ageMin}–{ageMax}</option>
+                  ))}
+                </select>
+              </label>
+              <fieldset>
+                <legend>Skills</legend>
+                {data.skills.length === 0 && <p>No skills are available.</p>}
+                <div className="pie-add-course__skills">
+                  {data.skills.map(({ _id, Titre }) => (
+                    <label key={_id}>
+                      <input type="checkbox" name="Competences" value={_id} defaultChecked={selectedSkills.has(_id)} />
+                      {Titre}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              {error && <p className="pie-add-course__error" role="alert">{error}</p>}
+              {saved && <p role="status">Changes saved. <Link to={`/cours/detailCourse/${safeId}`}>View Course</Link></p>}
+              <button type="submit" disabled={pending}>{pending ? 'Saving…' : 'Save Changes'}</button>
+            </form>
+          )}
+        </section>
+      </div>
+    </main>
+  );
 }

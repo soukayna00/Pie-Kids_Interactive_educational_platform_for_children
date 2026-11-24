@@ -1,29 +1,40 @@
 import React from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faBook, faPlusCircle, faQuestionCircle, faTachometerAlt,
+} from '@fortawesome/free-solid-svg-icons';
+import './sidebar.css';
 
-import { faTachometerAlt, faBook, faPlusCircle, faUserGraduate, faQuestionCircle, faVial } from '@fortawesome/free-solid-svg-icons';
-import './sidebar.css'
+export default function Sidebar() {
+  const { pathname } = useLocation();
+  const inCourseDetails = /^\/cours\/(detailCourse|editCourse)\//i.test(pathname);
 
-
-
-const Sidebar = () => {
   return (
-    <nav className="sidebar">
-      <div className="brand">
-        <h2>Teacher Dashboard</h2>
-      </div>
+    <nav className="pie-teacher-nav" aria-label="Teacher dashboard">
+      <h2>Teacher Portal</h2>
       <ul>
-        <li><a href="/home"><FontAwesomeIcon icon={faTachometerAlt} /> Dashboard</a></li>
-        <li><a href="/cours"><FontAwesomeIcon icon={faBook} /> My Courses</a></li>
-        <li><a href="/cours/Add_course"><FontAwesomeIcon icon={faPlusCircle} /> Add Course</a></li>
-        {/* <li><a href="/etudiants"><FontAwesomeIcon icon={faUserGraduate} /> My Students</a></li> */}
-        <li><a href="/quiz"><FontAwesomeIcon icon={faQuestionCircle} /> Quizes</a></li>
+        <li>
+          <NavLink to="/home" end>
+            <FontAwesomeIcon icon={faTachometerAlt} aria-hidden="true" /> Dashboard
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/cours" end aria-current={inCourseDetails ? 'location' : undefined}>
+            <FontAwesomeIcon icon={faBook} aria-hidden="true" /> My Courses
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/cours/add_course">
+            <FontAwesomeIcon icon={faPlusCircle} aria-hidden="true" /> Add Course
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/quiz">
+            <FontAwesomeIcon icon={faQuestionCircle} aria-hidden="true" /> Create a Quiz
+          </NavLink>
+        </li>
       </ul>
-      <div className="upgrade">
-        {/* <button>Get Pro Now</button> */}
-      </div>
     </nav>
   );
-};
-
-export default Sidebar;
+}

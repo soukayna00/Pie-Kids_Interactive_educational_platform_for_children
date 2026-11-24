@@ -1,121 +1,186 @@
-.container {
-  padding: 20px;
-  display: flex;
-  background-color: orange; 
-  background-image: url('../../../public/assets/pattern.png'); 
-  background-size: cover; 
-  min-height: 100vh;
+@font-face {
+  font-family: MarioFont;
+  src: url('../fonts/SuperMario256.ttf') format('truetype');
+  font-display: swap;
 }
 
-.courses-container {
+.pie-catalog {
+  --catalog-ink: #183047;
+  --catalog-cream: #fff6df;
+  --catalog-red: #a83226;
+  --catalog-gold: #f3bc4f;
+
+  min-height: 65vh;
+  padding: clamp(32px, 6vw, 72px) clamp(20px, 5vw, 64px);
+  background: #deeff8;
+  color: var(--catalog-ink);
+  font-family: system-ui, sans-serif;
+}
+
+.pie-catalog__inner {
+  max-width: 1100px;
+  margin-inline: auto;
+}
+
+.pie-catalog__intro {
+  margin-bottom: clamp(24px, 4vw, 36px);
+}
+
+.pie-catalog__intro h1 {
+  margin: 0 0 12px;
+  font: 400 clamp(2rem, 4vw, 3.5rem)/1.1 MarioFont, system-ui, sans-serif;
+}
+
+.pie-catalog__intro p {
+  max-width: 58ch;
+}
+
+.pie-catalog__intro p,
+.pie-catalog__body p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.pie-catalog__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pie-catalog__card,
+.pie-catalog__message {
+  border: 3px solid var(--catalog-ink);
+  background: var(--catalog-cream);
+  box-shadow: 5px 5px 0 var(--catalog-ink);
+}
+
+.pie-catalog__card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pie-catalog__art {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
+  height: clamp(150px, 20vw, 210px);
+  padding: 10px;
+  border-bottom: 3px solid var(--catalog-ink);
+  background: #c5e5f4;
+}
+
+.pie-catalog__card:nth-child(3n + 2) .pie-catalog__art {
+  background: #f8ded4;
+}
+
+.pie-catalog__card:nth-child(3n) .pie-catalog__art {
+  background: #f9e8b7;
+}
+
+.pie-catalog__art img {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+}
+
+.pie-catalog__sprite {
+  display: block;
+  width: min(100%, 176px);
+  aspect-ratio: 1;
+  max-height: 100%;
+  background: url('/assets/lesson-pixel-art.png') 0 center / 300% 100% no-repeat;
+}
+
+.pie-catalog__sprite--spending {
+  background-position-x: 50%;
+}
+
+.pie-catalog__sprite--budgeting {
+  background-position-x: 100%;
+}
+
+.pie-catalog__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 18px;
+  overflow-wrap: anywhere;
+}
+
+.pie-catalog .pie-catalog__body h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.pie-catalog .pie-catalog__skills {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
-  
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.course-card {
-  /* width: calc(40.33% - 20px);
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #f7f3f3;
-  padding: 5px;
-  width: 500px;
-  max-height:600px ; */
-  font-weight: 200;
-  display: flex;
-    flex-direction: column;
-    width: 400px;
-    height: 430px;
-    color: white;
-    /* background-color: blueviolet; */
-    background: repeating-linear-gradient( -45deg, #000,  #000 5px, #333 5px,#333 10px);
-    margin: 20px;
-    border-radius: 20px;
-
+.pie-catalog .pie-catalog__skills li {
+  padding: 3px 8px;
+  list-style: none;
+  background: #f3e3bd;
+  font-size: 0.875rem;
+  font-weight: 650;
 }
 
-.course-thumbnails {
-  width: 100%; 
-  height: 200px; 
-  object-fit: cover;
-}
-
-
-.course-info {
-  padding: 10px;
-}
-
-.course-title {
-  font-size: 18px;
-  color: #ffc107;
-  margin-bottom: 10px;
-}
-
-.course-description {
-  margin-bottom: 10px;
-}
-
-.competences {
-  margin-bottom: 10px;
-}
-
-.competencer {
-  display: inline-block;
-  background-color: #ffc107;
-  color: #212529;
-  padding: 2px 8px;
-  border-radius: 4px;
-  margin-right: 5px;
-  margin-bottom: 5px;
-}
-
-.action-buttons {
-  margin-top: 10px;
-}
-
-.action-btn {
-  color: #fff;
-
+.pie-catalog .pie-catalog__action {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 2px solid var(--catalog-ink);
+  background: var(--catalog-red);
+  box-shadow: 3px 3px 0 var(--catalog-ink);
+  color: var(--catalog-cream);
+  font: inherit;
+  font-weight: 800;
   text-decoration: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  margin-right: 5px;
-}
-
-.edit-btn {
-  background-color: #17a2b8;
-  margin: 5px;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
   cursor: pointer;
-  height: fit-content;
-  width: fit-content;
 }
 
-.detail-btn {
-  background-color: #28a745;
-  margin: 5px;
-
+.pie-catalog__body .pie-catalog__action {
+  margin-top: auto;
 }
 
-.delete-btn {
-  background-color: #dc3545;
-  margin: 5px;
-
+.pie-catalog__action:hover {
+  background: var(--catalog-gold);
+  color: var(--catalog-ink);
 }
 
+.pie-catalog__action:focus-visible {
+  outline: 3px solid var(--catalog-ink);
+  outline-offset: 5px;
+}
 
-.delete-btn  {
-  background-color: #dc3545; /* Red color for delete button */
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  height: fit-content;
-  width: fit-content;
+.pie-catalog__message {
+  max-width: 520px;
+  padding: 20px;
+}
+
+@media (max-width: 900px) {
+  .pie-catalog__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .pie-catalog__grid {
+    grid-template-columns: 1fr;
+  }
 }

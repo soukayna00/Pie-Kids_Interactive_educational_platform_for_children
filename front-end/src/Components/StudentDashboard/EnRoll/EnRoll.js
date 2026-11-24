@@ -1,115 +1,163 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { faDownload } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { AuthContext } from '../../../context/AuthContext';
+import { API_BASE_URL } from '../../../apiBase.js';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import DOMPurify from 'dompurify';
+import { useAuth } from '../../../context/AuthContext';
 import './EnRoll.css';
 
-const Enroll = () => {
+
+export default function Enroll() {
   const { id } = useParams();
+  return <CourseEnrollment key={id} id={id} />;
+}
+
+function CourseEnrollment({ id }) {
   const navigate = useNavigate();
-  const { authState } = useContext(AuthContext);
-  const { user, loading } = authState;
+  const { authState } = useAuth();
   const [course, setCourse] = useState(null);
-  const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [enrollError, setEnrollError] = useState('');
+  const [pending, setPending] = useState(false);
+  const [enrollment, setEnrollment] = useState(null);
+  const studentId = authState.isAuthenticated && authState.role === 'Etudiant' ? authState.id : null;
+  const submitting = useRef(false);
+  const dashboard = `/courses/${id}/dashboard`;
 
   useEffect(() => {
-    fetchCourseDetails();
-  }, [id]);
+    const controller = new AbortController();
 
-  const fetchCourseDetails = async () => {
-    try {
-      const response = await axios.get(`http://localhost:4000/cours/${id}`);
-      setCourse(response.data);
-      console.log(response.data);
-    } catch (error) {
-      console.error('Error fetching course details:', error);
-      setError('Error fetching course details');
-    }
-  };
-
-  const handleEnroll = async () => {
-    if (!authState.isAuthenticated) {
-      navigate('/login');
-    } else {
+    async function loadCourse() {
       try {
-        console.log('User ID:', authState.id); 
-        await axios.post(`http://localhost:4000/cours/enroller/${id}`, { userId: authState.id });
-        navigate(`/courses/${id}/dashboard`);
+        const response = await fetch(`${API_BASE_URL}/cours/${encodeURIComponent(id)}`, {
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          throw new Error(response.status === 404 ? 'Course not found.' : 'Couldn’t load this course.');
+        }
+        const data = await response.json();
+        if (!controller.signal.aborted) setCourse(data);
       } catch (error) {
-        console.error('Error enrolling in course:', error);
-        setError('Error enrolling in course');
+        if (!controller.signal.aborted) setLoadError(error.message);
       }
     }
-  };
 
-  if (loading) {
-    return <div><img id='goombella' src="/assets/goombella-walking" alt="Cute animal" /></div>;
+    loadCourse();
+    return () => controller.abort();
+  }, [id]);
+
+  useEffect(() => {
+    if (!studentId) return;
+
+    const controller = new AbortController();
+    fetch(`${API_BASE_URL}/cours/mine`, {
+      signal: controller.signal,
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    }).then((response) => {
+      if (!response.ok) throw new Error('Enrollment status unavailable');
+      return response.json();
+    }).then((courses) => {
+      if (!controller.signal.aborted) {
+        setEnrollment({ studentId, enrolled: courses.some((item) => item._id === id) });
+      }
+    }).catch(() => {
+      if (!controller.signal.aborted) setEnrollment({ studentId, failed: true });
+    });
+
+    return () => controller.abort();
+  }, [id, studentId]);
+
+  async function enroll() {
+    if (submitting.current) return;
+    submitting.current = true;
+    setPending(true);
+    setEnrollError('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/cours/enroller/${encodeURIComponent(id)}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      if (!response.ok) throw new Error('Enrollment failed');
+      navigate(dashboard);
+    } catch {
+      setEnrollError('We couldn’t enroll you. Please try again.');
+    } finally {
+      submitting.current = false;
+      setPending(false);
+    }
   }
 
-  if (error) {
-    return <div>{error}</div>;
-  }
-
-  if (!course) {
-    return <div>Loading...</div>;
-  }
+  const enrollmentStatus = enrollment?.studentId === studentId ? enrollment : null;
+  const enrolled = studentId && enrollmentStatus?.enrolled;
+  const chapters = course?.chapitres?.filter(Boolean) ?? [];
+  const age = course?.trancheAge;
 
   return (
-    <div className="course-details-container">
-      <div className='diff-dog'>
-        <img 
-          src={`http://localhost:4000/${course.Thumbnail}`} 
-          alt="Course Thumbnail" 
-          className="course-thumbnail" 
-        />
-        <div className='text-content'>
-          <h2>{course.titre}</h2>
-          <h3>Description</h3>
-          <p>{course.description}</p>
-        </div>
-      </div>
-      
-      <div className="tranche-age">
-        <h3>Age Range:</h3>
-        <span>{course.trancheAge.ageMin} - {course.trancheAge.ageMax}</span>
-      </div>
-      
-      <div className="chapters">
-        <h3>Curriculum:</h3>
-        <ul>
-          {course.chapitres && course.chapitres.map(chapitre => (
-            <li key={chapitre._id}>
-              <details>
-                <summary>{chapitre.titre}</summary>
-                <div dangerouslySetInnerHTML={{ __html: chapitre.content }}></div>
-                {chapitre.resources && chapitre.resources.length > 0 && (
-                  <div className="resources">
-                    <h4>Resources:</h4>
+    <main className="pie-enroll">
+      <div className="pie-enroll__inner">
+        <Link to="/courses">← Explore Lessons</Link>
+
+        {loadError ? (
+          <p role="alert">{loadError}</p>
+        ) : !course ? (
+          <p role="status">Loading course…</p>
+        ) : (
+          <>
+            <header className="pie-enroll__hero">
+              <div>
+                <h1>{course.titre}</h1>
+                <p>{course.description}</p>
+                {age?.ageMin != null && age?.ageMax != null && (
+                  <p className="pie-enroll__age">Ages {age.ageMin}–{age.ageMax}</p>
+                )}
+                <div className="pie-enroll__actions">
+                  {enrolled ? (
+                    <Link className="pie-enroll__button" to={dashboard}>Open Course</Link>
+                  ) : !authState.isAuthenticated ? (
+                    <Link className="pie-enroll__button" to="/login">Sign In to Enroll</Link>
+                  ) : studentId && !enrollmentStatus ? (
+                    <p role="status">Checking enrollment…</p>
+                  ) : studentId ? (
+                    <button className="pie-enroll__button" type="button" disabled={pending} onClick={enroll}>
+                      {pending ? 'Enrolling…' : 'Enroll in Course'}
+                    </button>
+                  ) : (
+                    <p>A student account is needed to enroll.</p>
+                  )}
+                  {enrollError && <p role="alert">{enrollError}</p>}
+                </div>
+              </div>
+              {course.Thumbnail && (
+                <img src={`${API_BASE_URL}/${course.Thumbnail.replace(/\\/g, '/')}`} alt="" />
+              )}
+            </header>
+
+            <section aria-labelledby="curriculum-title">
+              <h2 id="curriculum-title">Curriculum</h2>
+              {chapters.length === 0 && <p>No chapters have been added yet.</p>}
+              {chapters.map((chapter) => (
+                <details key={chapter._id} className="pie-enroll__chapter">
+                  <summary>{chapter.titre}</summary>
+                  {chapter.content && (
+                    <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(chapter.content) }} />
+                  )}
+                  {chapter.resources?.length > 0 && (
                     <ul>
-                      {chapitre.resources.map(resource => (
-                        <li key={resource._id}>
-                          <a 
-                            href={`http://localhost:4000/uploads/${resource.filename}`} 
-                            download={resource.filename} 
-                            className="resource-button"
-                          >
-                            <FontAwesomeIcon icon={faDownload} /> Download
+                      {chapter.resources.filter((resource) => resource?.filename).map((resource) => (
+                        <li key={resource._id ?? resource.filename}>
+                          <a href={`${API_BASE_URL}/uploads/${encodeURIComponent(resource.filename)}`} download={resource.filename}>
+                            {resource.filename}
                           </a>
                         </li>
                       ))}
                     </ul>
-                  </div>
-                )}
-              </details>
-            </li>
-          ))}
-        </ul>
-        <button onClick={handleEnroll} className='EN-roll'>Enroll</button>
+                  )}
+                </details>
+              ))}
+            </section>
+          </>
+        )}
       </div>
-    </div>
+    </main>
   );
-};
-
-export default Enroll;
+}

@@ -1,71 +1,153 @@
-/* AddCourses.css */
-.page-container {
-    display: flex;
-    height: 100vh; /* Full height of the viewport */
+.pie-add-course {
+  --course-ink: #183047;
+  --course-cream: #fff6df;
+  --course-red: #a83226;
+  --course-gold: #f3bc4f;
+
+  min-height: 68vh;
+  padding: clamp(24px, 5vw, 56px) clamp(16px, 4vw, 48px);
+  background: #deeff8;
+  color: var(--course-ink);
+  font-family: system-ui, sans-serif;
 }
 
-.sidebar {
-    width: 250px; /* Fixed width for the sidebar */
-    background-color: #f1f1f1; /* Background color for the sidebar */
-    padding: 20px;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+.pie-add-course__layout {
+  display: grid;
+  grid-template-columns: minmax(165px, 220px) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(20px, 4vw, 40px);
+  max-width: 1160px;
+  margin-inline: auto;
 }
 
-.form-container {
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    /* background-color: #f9f9f9; */
+.pie-add-course__panel {
+  min-width: 0;
+  padding: clamp(18px, 3vw, 32px);
+  border: 3px solid var(--course-ink);
+  background: var(--course-cream);
+  box-shadow: 4px 4px 0 var(--course-ink);
 }
 
-form {
-    width: 100%;
-
-    max-width: 600px;
-    background-color: #fff;
-    padding: 20px;
-    margin: 10px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+.pie-add-course .pie-add-course__panel h1 {
+  margin: 0 0 20px;
+  font: 400 clamp(1.6rem, 4vw, 2.8rem)/1.15 MarioFont, system-ui, sans-serif;
 }
 
-form div {
-    margin-bottom: 15px;
+.pie-add-course .pie-add-course__panel form {
+  display: grid;
+  justify-items: start;
+  gap: 16px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
+.pie-add-course form > label,
+.pie-add-course form > fieldset {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
 }
 
-input[type="text"],
-input[type="file"],
-textarea,
-select {
-    width: 90%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+.pie-add-course form > label {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
 }
 
-textarea {
-    resize: vertical;
+.pie-add-course form :is(input:not([type='checkbox']), textarea, select) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 2px solid var(--course-ink);
+  border-radius: 0;
+  background: #fffdf5;
+  color: inherit;
+  font: inherit;
+  font-weight: 400;
 }
 
-button {
-    width: 100%;
-    padding: 10px;
-    background-color: #007bff;
-    border: none;
-    color: white;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
+.pie-add-course textarea {
+  resize: vertical;
 }
 
-button:hover {
-    background-color: #0056b3;
+.pie-add-course fieldset {
+  padding: 10px 12px;
+  border: 2px solid var(--course-ink);
+}
+
+.pie-add-course legend {
+  float: none;
+  width: auto;
+  padding-inline: 5px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.pie-add-course__skills,
+.pie-add-course__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.pie-add-course__skills label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 9px;
+  background: #f3e3bd;
+}
+
+.pie-add-course__skills input {
+  accent-color: var(--course-red);
+}
+
+.pie-add-course .pie-add-course__panel button {
+  width: auto;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 2px solid var(--course-ink);
+  border-radius: 0;
+  background: var(--course-red);
+  color: var(--course-cream);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.pie-add-course .pie-add-course__panel button:hover:not(:disabled) {
+  background: var(--course-gold);
+  color: var(--course-ink);
+}
+
+.pie-add-course .pie-add-course__panel button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.pie-add-course__actions a,
+.pie-add-course__error {
+  color: var(--course-red);
+  font-weight: 750;
+}
+
+.pie-add-course :is(a, input, textarea, select, button):focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .pie-add-course__layout {
+    grid-template-columns: 1fr;
+  }
 }

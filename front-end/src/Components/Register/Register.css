@@ -1,80 +1,160 @@
+.pie-register {
+  --register-ink: #183047;
+  --register-cream: #fff6df;
+  --register-red: #a83226;
+  --register-gold: #f3bc4f;
 
-    .containers-register{
-       height: 80vh;
-        /* background: linear-gradient(135deg, #FFD3A5, #FDFFB6); */
-        border-bottom:   1px solid #33333375;
-        padding: 20px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        font-family: monospace;
-        display: flex;
+  padding: clamp(24px, 5vw, 64px) clamp(16px, 5vw, 64px);
+  background: #deeff8;
+  color: var(--register-ink);
+  font-family: system-ui, sans-serif;
+}
 
+.pie-register__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(24px, 6vw, 72px);
+  max-width: 1000px;
+  margin-inline: auto;
+}
 
-       
-    }
-    #form-registers{
-        /* background-color: rgb(240, 248, 255); */
-        height: 50vh;
-        padding: 30px;
-        border-radius: 20px;
-        width: 50%;
-/* 
+.pie-register__panel {
+  min-width: 0;
+  padding: clamp(18px, 4vw, 34px);
+  border: 3px solid var(--register-ink);
+  background: var(--register-cream);
+  box-shadow: 5px 5px 0 var(--register-ink);
+}
 
-        /* background: rgba(255, 255, 255, 0.2); */
-        /* border-radius: 16px; */
-        /* box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); */
-        /* backdrop-filter: blur(5px); */
-        /* -webkit-backdrop-filter: blur(5px); */
-        /* border: 1px solid rgba(255, 255, 255, 0.3); */ 
-    }
-    #form-registers> input {
-         
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 16px;
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        backdrop-filter: blur(5px);
-        -webkit-backdrop-filter: blur(5px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        padding: 5px;
-        margin: 10px;
-    }
+.pie-register__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
 
-    #form-registers>label{
-        color: rgb(47, 46, 46);
-        margin: 10px;
-    }
-    #form-registers>button{
-        color: rgb(248, 242, 242);
-        background-color: #359e40;
-        border-radius: 16px;
-        border: none;
-        padding: 10px;
-        margin-top: 10px;
-    }
-    #form-registers>button:hover{
-        background-color:white ;
-        color: #39ff14;
-    }
+.pie-register__heading h1 {
+  margin: 0;
+  font: 400 clamp(1.7rem, 3.5vw, 2.7rem)/1.1 MarioFont, system-ui, sans-serif;
+}
 
-    #image-money{
-        height: 100px;
-    }
+.pie-register__heading img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
 
-    #form-registers>.header-money{
-        display: flex;
-        align-items: end;
-    }
-    #thekidi{
-        height: 450px;
-        margin-left: 100px;
-        border-radius: 16px;
-    }
+.pie-register__panel p {
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
 
-    input[type="number"] {
-        width: 100%;
-        padding: 10px;
-        margin-top: 5px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-        font-size: 16px;
-      }
+.pie-register .pie-register__panel form {
+  display: grid;
+  gap: 12px;
+  width: auto;
+  max-width: none;
+  margin: 20px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.pie-register .pie-register__panel label {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  color: var(--register-ink);
+  font-weight: 700;
+}
+
+.pie-register .pie-register__panel input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 2px solid var(--register-ink);
+  border-radius: 0;
+  background: #fffdf5;
+  color: var(--register-ink);
+  font: inherit;
+  font-weight: 400;
+}
+
+.pie-register .pie-register__panel button {
+  width: 100%;
+  min-height: 46px;
+  margin: 4px 0 0;
+  padding: 8px 12px;
+  border: 2px solid var(--register-ink);
+  border-radius: 0;
+  background: var(--register-red);
+  color: var(--register-cream);
+  box-shadow: 3px 3px 0 var(--register-ink);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.pie-register .pie-register__panel button:hover:not(:disabled) {
+  background: var(--register-gold);
+  color: var(--register-ink);
+}
+
+.pie-register .pie-register__panel button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.pie-register :is(input, button, a):focus-visible {
+  outline: 2px solid var(--register-red);
+  outline-offset: 3px;
+}
+
+.pie-register .pie-register__error {
+  margin: 0;
+  color: #851f16;
+  font-weight: 700;
+}
+
+.pie-register .pie-register__signin {
+  margin-top: 18px;
+  text-align: center;
+}
+
+.pie-register__signin a {
+  color: var(--register-ink);
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
+.pie-register .pie-register__art {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+}
+
+.pie-register .pie-register__art > img {
+  display: block;
+  width: min(100%, 680px);
+  max-width: 100%;
+  height: auto;
+  max-height: 980px;
+  margin: 0;
+  object-fit: contain;
+}
+
+@media (max-width: 700px) {
+  .pie-register__layout {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+  }
+
+  .pie-register .pie-register__art {
+    display: none;
+  }
+}

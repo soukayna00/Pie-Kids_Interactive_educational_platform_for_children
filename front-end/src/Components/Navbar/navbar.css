@@ -1,88 +1,104 @@
-@font-face {
-  font-family: MarioFont;
-  src: url('C:\Users\PC\PIE KIDS\front-end\src\Components\fonts\SuperMario256.ttf') format('truetype');
-}
-
-
-.navbar {
-  /* background-color: #000000; */
+.pie-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  padding: 10px clamp(16px, 4vw, 56px);
   background: repeating-linear-gradient(
     -45deg,
-    #000,
-    #000 5px,
-    #333 5px,
-    #333 10px
+    #101010 0 5px,
+    #262626 5px 10px
   );
-  border-bottom:   1px solid #33333375;
-  /* box-shadow: 0 -2px -4px rgb(255, 0, 0); */
-  color: #fef9f9;
-  padding: 15px;
+  border-bottom: 2px solid #c64232;
 }
 
-.logo {
-  font-size: 35px;
-  font-weight: bold;
-  color:#fe0505;
-  font-family:MarioFont ;
-
-}
-
-
-.nav-links {
+.pie-navbar .logo {
   display: flex;
-  justify-content: space-evenly;
+  flex: none;
   align-items: center;
-  list-style: none;
+  width: clamp(170px, 19vw, 230px);
+  height: 44px;
+  overflow: hidden;
+}
+
+.pie-navbar .logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.pie-navbar .nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px 18px;
+  width: auto;
+  margin: 0;
   padding: 0;
+  list-style: none;
+}
+
+.pie-navbar .nav-links > li {
   margin: 0;
 }
- 
-.nav-links :hover{
-  color:red;
-}
 
-.nav-links li {
-  margin-right: 20px;
-}
-
-.nav-links a {
-  text-decoration: none;
-  color: #fffcfc;
+.pie-navbar .nav-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  color: #fff6df;
   font-size: 14px;
-}
-
-.signup-button {
-  background-color: #ff0000;
-  color: #fff;
-  padding: 10px 10px;
-  /* border-radius: 20px; */
-  border-radius: 90°;
-
+  font-weight: 600;
   text-decoration: none;
-  transition: background-color 0.3s ease;
-  margin: 5px;
-
-  
+  white-space: nowrap;
 }
 
-.signup-button:hover {
-  background-color: #fff;
-  color: #ff0000;
+.pie-navbar .nav-links a:hover {
+  color: #f3bc4f;
 }
 
-
-.signin-button{
-  background-color: #ff0000;
-  color: #fff;
-  padding: 10px 10px;
-  border-radius: 90°;
-  text-decoration: none;
-  transition: background-color 0.3s ease;
-  margin: 5px;
-
+.pie-navbar .nav-links :is(.signup-button, .signin-button, .btn-danger) {
+  padding: 8px 13px;
+  border: 1px solid #c64232;
+  border-radius: 4px;
 }
 
-.signin-button:hover {
-  color: #ff0000;
-  background-color: #fff;
+.pie-navbar .nav-links :is(.signup-button, .btn-danger) {
+  background: #a83226;
+  color: #fff6df;
+}
+
+.pie-navbar .nav-links .signin-button {
+  border-color: #fff6df;
+  color: #fff6df;
+}
+
+.pie-navbar .nav-links :is(.signup-button, .signin-button, .btn-danger):hover {
+  border-color: #f3bc4f;
+  background: #f3bc4f;
+  color: #181818;
+}
+
+.pie-navbar :is(a, button):focus-visible {
+  outline: 2px solid #f3bc4f;
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .pie-navbar {
+    flex-direction: column;
+    padding: 10px 16px 12px;
+  }
+
+  .pie-navbar .logo {
+    width: 185px;
+    height: 38px;
+  }
+
+  .pie-navbar .nav-links {
+    justify-content: center;
+    gap: 6px 14px;
+  }
 }

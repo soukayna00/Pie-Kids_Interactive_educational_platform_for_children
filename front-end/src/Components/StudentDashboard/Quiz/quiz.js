@@ -1,75 +1,121 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { API_BASE_URL } from '../../../apiBase.js';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import './quiz.css';
 
+function QuizAttempt({ quiz }) {
+  const [answers, setAnswers] = useState({});
+  const [score, setScore] = useState(null);
+
+  function grade(event) {
+    event.preventDefault();
+    setScore(quiz.questions.filter((question, index) =>
+      question.options[answers[index]]?.isCorrect
+    ).length);
+  }
+
+  return (
+    <form className="pie-quiz__form" onSubmit={grade}>
+      {quiz.questions.map((question, index) => (
+        <fieldset key={question._id} className="pie-quiz__question" disabled={score !== null}>
+          <legend>{index + 1}. {question.text}</legend>
+          {question.options.map((option, optionIndex) => (
+            <label key={option._id} className="pie-quiz__option">
+              <input
+                type="radio"
+                name={`question-${index}`}
+                checked={answers[index] === optionIndex}
+                onChange={() => setAnswers((previous) => ({ ...previous, [index]: optionIndex }))}
+                required
+              />
+              {option.text}
+            </label>
+          ))}
+          {score !== null && (
+            <p>
+              {question.options[answers[index]]?.isCorrect
+                ? 'Correct!'
+                : `Correct answer: ${question.options.filter((option) => option.isCorrect).map((option) => option.text).join(', ')}.`}
+              {question.explanation && ` ${question.explanation}`}
+            </p>
+          )}
+        </fieldset>
+      ))}
+      {score === null ? (
+        <button type="submit">Check Answers</button>
+      ) : (
+        <>
+          <p role="status">You got {score} out of {quiz.questions.length} correct.</p>
+          <button type="button" onClick={() => { setAnswers({}); setScore(null); }}>
+            Try Again
+          </button>
+        </>
+      )}
+    </form>
+  );
+}
+
 export default function Quiz() {
-    const [quizData, setQuizData] = useState(null);
+  const [quizzes, setQuizzes] = useState(null);
+  const [selectedId, setSelectedId] = useState('');
+  const [failed, setFailed] = useState(false);
 
-    useEffect(() => {
-        // Fetch quiz data from API
-        const fetchQuizData = async () => {
-            try {
-                const response = await axios.get('http://localhost:4000/quiz');
-                console.log('Response from API:', response.data);
-                setQuizData(response.data);
-            } catch (error) {
-                console.error('Error fetching quiz data:', error);
-            }
-        };
-        fetchQuizData();
-    }, []);
+  useEffect(() => {
+    const controller = new AbortController();
 
-    const handleOptionChange = (qIndex, oIndex) => {
-        if (!quizData || !quizData.questions) return; // Add a guard clause
-        const updatedQuestions = [...quizData.questions];
-        updatedQuestions[qIndex].options.forEach((option, index) => {
-            option.isSelected = index === oIndex;
+    async function load() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/quiz`, {
+          signal: controller.signal,
         });
-        setQuizData(prevState => ({
-            ...prevState,
-            questions: updatedQuestions
-        }));
-    };
+        if (!response.ok) throw new Error('Quiz list unavailable');
+        const data = await response.json();
+        if (!Array.isArray(data)) throw new Error('Invalid quiz list');
 
-    const handleSubmit = async e => {
-        e.preventDefault();
-        try {
-            // Submit quiz data
-            console.log('Quiz data:', quizData);
-        } catch (error) {
-            console.error('Error submitting quiz:', error);
+        if (!controller.signal.aborted) {
+          setQuizzes(data.filter((quiz) =>
+            quiz?.questions?.length > 0 && quiz.questions.every((question) =>
+              question?.options?.some((option) => option?.isCorrect)
+            )
+          ));
         }
-    };
+      } catch {
+        if (!controller.signal.aborted) setFailed(true);
+      }
+    }
 
-    console.log('Quiz data:', quizData); // Add this console.log to track quizData
+    load();
+    return () => controller.abort();
+  }, []);
 
-    return (
-        <div className='container'>
-            {quizData && quizData.questions ? (
-                <form onSubmit={handleSubmit}>
-                    {quizData.questions.map((question, qIndex) => (
-                        <div key={question._id}>
-                            <p>{question.text}</p>
-                            {question.options.map((option, oIndex) => (
-                                <div key={option._id}>
-                                    <input
-                                        type="radio"
-                                        id={`option${oIndex}`}
-                                        name={`question${qIndex}`}
-                                        value={option.text}
-                                        checked={option.isSelected}
-                                        onChange={() => handleOptionChange(qIndex, oIndex)}
-                                    />
-                                    <label htmlFor={`option${oIndex}`}>{option.text}</label>
-                                </div>
-                            ))}
-                        </div>
-                    ))}
-                    <button type="submit">Submit Quiz</button>
-                </form>
-            ) : (
-                <p>Loading...</p>
-            )}
-        </div>
-    );
+  const quiz = quizzes?.find((item) => item._id === selectedId);
+
+  return (
+    <main className="pie-quiz">
+      <div className="pie-quiz__inner">
+        <Link to="/student">← Back to Dashboard</Link>
+        <h1>Quizzes</h1>
+        {failed ? (
+          <p role="alert">We couldn’t load the quizzes. Refresh the page to try again.</p>
+        ) : quizzes === null ? (
+          <p role="status">Loading quizzes…</p>
+        ) : quizzes.length === 0 ? (
+          <p>No quizzes are available yet. <Link to="/courses">Explore lessons</Link> while you wait.</p>
+        ) : (
+          <>
+            <label className="pie-quiz__picker">
+              Choose a quiz
+              <select value={selectedId} onChange={(event) => setSelectedId(event.target.value)}>
+                <option value="">Select a quiz</option>
+                {quizzes.map((item) => (
+                  <option key={item._id} value={item._id}>{item.title}</option>
+                ))}
+              </select>
+            </label>
+            {quiz && <QuizAttempt key={quiz._id} quiz={quiz} />}
+          </>
+        )}
+      </div>
+    </main>
+  );
 }

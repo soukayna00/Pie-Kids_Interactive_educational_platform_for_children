@@ -1,139 +1,104 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    /* background-color: #124192; */
-    /* background-image: url('../../../../public/assets/Enjoygame.png'); */
-    background-size: cover;
-    /* background-repeat: repeat; */
-    /* background-size: auto 525px;  */
-    font-family: monospace;
+.pie-student {
+  --student-ink: #183047;
+  --student-cream: #fff6df;
+  --student-red: #a83226;
+  --student-gold: #f3bc4f;
+
+  min-height: 70vh;
+  padding: clamp(24px, 5vw, 56px) clamp(16px, 4vw, 48px);
+  background: #deeff8;
+  color: var(--student-ink);
+  font-family: system-ui, sans-serif;
 }
 
-.container-st {
-    display: flex;
+.pie-student__layout {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(20px, 4vw, 40px);
+  max-width: 1160px;
+  margin-inline: auto;
 }
 
-.sidebar {
-    width: 200px;
-    background-color: #ffffff78;
-    color: #1c1b1a;
-    display: flex;
-    padding: 10px;
-    flex-direction: column;
-    justify-content: space-between;
-    margin: 5px;
-    border-radius: 16px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+.pie-student__content {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
 }
 
-.sidebar .brand h2 {
-    margin: 0;
-    text-align: center;
-    font-size: 18px;
-    color: #7eb684;
+.pie-student__welcome,
+.pie-student__courses {
+  padding: clamp(18px, 3vw, 32px);
+  border: 3px solid var(--student-ink);
+  background: var(--student-cream);
+  box-shadow: 4px 4px 0 var(--student-ink);
 }
 
-.sidebar ul {
-    list-style: none;
-    padding: 0;
+.pie-student__welcome {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
 }
 
-.sidebar ul li {
-    margin: 20px 0;
+.pie-student__welcome img {
+  width: clamp(64px, 10vw, 112px);
+  height: auto;
 }
 
-.sidebar ul li a  {
-    color: #1c1b1a;
-    text-decoration: none;
-    display: block;
+.pie-student__welcome h1,
+.pie-student__courses h2 {
+  margin: 0 0 10px;
+  font: 400 clamp(1.6rem, 3.5vw, 2.8rem)/1.12 MarioFont, system-ui, sans-serif;
+  overflow-wrap: anywhere;
 }
 
-.sidebar .upgrade button {
-    background-color: #7eb684;
-    border: none;
-    padding: 10px;
-    color: #fff;
-    cursor: pointer;
-    width: 100%;
-    font-size: 16px;
+.pie-student__courses h2 {
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
 }
 
-.content {
-    flex: 1;
-    padding: 20px;
+.pie-student p {
+  margin: 0;
+  line-height: 1.55;
 }
 
-header h1 {
-    margin: 0;
-    font-size: 20px;
+.pie-student__button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 14px;
+  padding: 8px 13px;
+  border: 2px solid var(--student-ink);
+  background: var(--student-red);
+  color: var(--student-cream);
+  font: inherit;
+  font-weight: 750;
+  text-decoration: none;
+  cursor: pointer;
 }
 
-.stats {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
+.pie-student__button:hover {
+  background: var(--student-gold);
+  color: var(--student-ink);
 }
 
-.card {
-    background-color: #ffffffb0;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 8px;
-    padding: 20px;
-    flex: 1;
-    margin: 0 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.pie-student :is(a, button):focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
-.card h3 {
-    margin: 0 0 10px;
-    color: #474645;
+@media (max-width: 700px) {
+  .pie-student__layout {
+    grid-template-columns: 1fr;
+  }
 }
 
-.details {
-    display: flex;
-    margin-top: 20px;
-}
+@media (max-width: 380px) {
+  .pie-student__welcome {
+    grid-template-columns: 1fr;
+  }
 
-.current-earnings, .top-courses, .student-locations {
-    background-color: #ffffff78;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 8px;
-    padding: 20px;
-    flex: 1;
-    margin-right: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.current-earnings button {
-    background-color: #f6ac5d;
-    border: none;
-    padding: 10px;
-    color: #fff;
-    cursor: pointer;
-    width: 100%;
-    font-size: 16px;
-    margin-top: 10px;
-}
-
-.top-courses ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.top-courses ul li {
-    margin: 10px 0;
-}
-.current-earnings h3,.student-locations h3,.top-courses h3 {
-    color: #f6ac5d;
+  .pie-student__welcome img {
+    display: none;
+  }
 }

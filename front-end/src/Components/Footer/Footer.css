@@ -1,22 +1,68 @@
-.footer {
-	background-color: red;
-	color: #fff;
-	padding: 20px 0;
-	text-align: center;
+.pie-footer {
+  padding: 18px clamp(20px, 5vw, 64px);
+  border-top: 2px solid #f3bc4f;
+  background: #183047;
+  color: #fff6df;
+  font-family: system-ui, sans-serif;
+}
+
+.pie-footer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  max-width: 1100px;
+  margin-inline: auto;
+}
+
+.pie-footer__logo {
+  display: flex;
+  align-items: center;
+  width: 145px;
+  height: 34px;
+  overflow: hidden;
+}
+
+.pie-footer__logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.pie-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 20px;
+}
+
+.pie-footer__links a {
+  padding-block: 6px;
+  color: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pie-footer__links a:hover {
+  color: #f3bc4f;
+  text-decoration: underline;
+}
+
+.pie-footer a:focus-visible {
+  outline: 2px solid #f3bc4f;
+  outline-offset: 4px;
+}
+
+.pie-footer__copyright {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 700px) {
+  .pie-footer__inner {
+    flex-direction: column;
+    text-align: center;
   }
-  
-  .footer-content {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-  }
-  
-  .social-icons a {
-	color: #fff;
-	margin: 0 5px;
-  }
-  
-  .social-icons a:hover {
-	color: #f00; /* Change color on hover */
-  }
-  
+}

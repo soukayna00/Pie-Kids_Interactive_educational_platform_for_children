@@ -34,7 +34,7 @@ The main goal is to:
 
 **Backend** 
 
-* Laravel
+* Node.js / Express
 
 **Database** 
 
@@ -43,27 +43,32 @@ The main goal is to:
 ---
 -
 
-## ⚙️ Installation
+## Run locally with Docker
 
-1. Clone the repository
+Start Docker Desktop and open PowerShell in the `PIE-KIDS` folder.
+On first setup, generate a local JWT secret in the root `.env` file:
 
-```bash
-git clone https://github.com/soukayna00/PIE-KIDS.git
+```powershell
+if (!(Test-Path .env)) {
+    $pieKidsSecret = node -p "require('node:crypto').randomBytes(32).toString('hex')"
+    "PIE_KIDS_JWT_SECRET=$pieKidsSecret" | Set-Content -Encoding ascii .env
+}
+docker compose up --build -d
 ```
 
-2. Navigate to the project folder
+Open [PIE Kids](http://localhost:3000). The API is on
+[localhost:4000](http://localhost:4000). Check startup with `docker compose ps`
+and `docker compose logs backend`.
 
-```bash
-cd PIE-KIDS
-```
+Vite watches `front-end/src` and `front-end/public` through Docker bind mounts.
+Save a React, CSS, or image change and the browser updates automatically.
+Rebuild the frontend with `docker compose up -d --build frontend` when you
+change frontend dependencies, the Dockerfile, or the Vite configuration.
 
-3. Open `index.html` in your browser
-
----
-
-
-
-
+The default MongoDB container starts with an empty database. To use an existing
+MongoDB instance, set `PIE_KIDS_MONGO_URL` in the root `.env` to a connection
+string reachable from the backend container. MongoDB data and uploaded files
+persist across `docker compose down` and subsequent restarts.
 
 ## 🤝 Contributing
 

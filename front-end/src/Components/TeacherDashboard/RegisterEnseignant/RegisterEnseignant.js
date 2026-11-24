@@ -1,77 +1,101 @@
-// src/components/RegisterEnseignant.js
-import React, { useState } from 'react';
+import { API_BASE_URL } from '../../../apiBase.js';
+import React, { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
+import '../../Register/Register.css';
+import './RegisterEnseignant.css';
 
+export default function RegisterEnseignant() {
+  const submitting = useRef(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
+  const [registered, setRegistered] = useState(false);
 
-const RegisterEnseignant = () => {
-  const [formData, setFormData] = useState({
-    nom: '',
-    email: '',
-    motDePasse: '',
-    confirmPassword: ''
-  });
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  async function handleSubmit(event) {
+    event.preventDefault();
+    if (submitting.current) return;
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    const { nom, email, motDePasse, confirmPassword } = Object.fromEntries(
+      new FormData(event.currentTarget),
+    );
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (formData.motDePasse !== formData.confirmPassword) {
-      setError('Passwords do not match');
+    if (!nom.trim()) {
+      setError('Enter your name.');
       return;
     }
-    try {
-      const response = await axios.post('/Enseignant/register-enseignant', {
-        nom: formData.nom,
-        email: formData.email,
-        motDePasse: formData.motDePasse,
-      });
-      if (response.status === 200) {
-        setSuccess('Registration successful! Please check your email to verify your account.');
-        setFormData({
-          nom: '',
-          email: '',
-          motDePasse: '',
-          confirmPassword: ''
-        });
-        setError(null);
-      } else {
-        setError('Registration failed. Please try again.');
-      }
-    } catch (error) {
-      setError('An error occurred during registration. Please try again.');
+    if (motDePasse !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
     }
-  };
+
+    submitting.current = true;
+    setPending(true);
+    setError('');
+
+    try {
+      await axios.post(`${API_BASE_URL}/Enseignant/register-enseignant`, {
+        nom: nom.trim(),
+        email: email.trim(),
+        motDePasse,
+      });
+      setRegistered(true);
+    } catch (requestError) {
+      setError(requestError.response?.status === 400
+        ? 'That email is already in use.'
+        : 'We couldn’t create your account. Please try again.');
+    } finally {
+      submitting.current = false;
+      setPending(false);
+    }
+  }
 
   return (
-    <div className="register-enseignant-container">
-      <h2>Register as a Teacher</h2>
-      {error && <p className="error">{error}</p>}
-      {success && <p className="success">{success}</p>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Name:</label>
-          <input type="text" name="nom" value={formData.nom} onChange={handleChange} required />
-        </div>
-        <div>
-          <label>Email:</label>
-          <input type="email" name="email" value={formData.email} onChange={handleChange} required />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input type="password" name="motDePasse" value={formData.motDePasse} onChange={handleChange} required />
-        </div>
-        <div>
-          <label>Confirm Password:</label>
-          <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required />
-        </div>
-        <button type="submit">Register</button>
-      </form>
-    </div>
-  );
-};
+    <main className="pie-register pie-teacher-register">
+      <div className="pie-register__layout">
+        <section className="pie-register__panel" aria-labelledby="teacher-register-title">
+          <div className="pie-register__heading">
+            <h1 id="teacher-register-title">Join as an Educator</h1>
+            <img src="/assets/star.png" alt="" />
+          </div>
 
-export default RegisterEnseignant;
+          {registered ? (
+            <p role="status">Your educator account is ready. <Link to="/login">Sign in</Link> to get started.</p>
+          ) : (
+            <>
+              <p>Create an account to teach kids about money.</p>
+              <form onSubmit={handleSubmit}>
+                <label>
+                  Your name
+                  <input name="nom" autoComplete="name" required />
+                </label>
+                <label>
+                  Email
+                  <input name="email" type="email" autoComplete="email" required />
+                </label>
+                <label>
+                  Password
+                  <input name="motDePasse" type="password" autoComplete="new-password" required />
+                </label>
+                <label>
+                  Confirm password
+                  <input name="confirmPassword" type="password" autoComplete="new-password" required />
+                </label>
+                {error && <p className="pie-register__error" role="alert">{error}</p>}
+                <button type="submit" disabled={pending}>
+                  {pending ? 'Creating account…' : 'Create Educator Account'}
+                </button>
+              </form>
+              <p className="pie-register__signin">
+                Already have an account? <Link to="/login">Sign in</Link>
+              </p>
+            </>
+          )}
+        </section>
+
+        <div className="pie-register__art" aria-hidden="true">
+          <img src="/assets/mario-shell.png" alt="" />
+        </div>
+      </div>
+    </main>
+  );
+}

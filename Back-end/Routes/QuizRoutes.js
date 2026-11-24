@@ -1,14 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const { Quiz } = require('../Models/Quiz');
+const authMiddleware = require('../Middleware/authMiddleware');
 
 
 // Route to create a new quiz
 
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
+    if (req.Utilisateur.role !== 'Enseignant') {
+        return res.status(403).json({ message: 'A teacher account is required.' });
+    }
     try {
         const quizData = req.body;
-        console.log('Received Quiz Data:', quizData);
         const newQuiz = new Quiz(quizData);
         const savedQuiz = await newQuiz.save();
         res.status(201).json(savedQuiz);

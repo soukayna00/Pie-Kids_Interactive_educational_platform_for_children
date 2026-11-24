@@ -1,21 +1,41 @@
- .stats> .card{
-    background-color: white; 
-    box-shadow: #007bff 1px;
-    
-    /* background-image: url('../../../../public/assets/pattern.png'); 
-    background-size: cover; */
- }
- .card> p{
-    color: f6ac5d;
-    font-size: 20px;
- }
- .card> h3{
-    color: black;
-    font-size: 22px;
- }
- #mario-dance{
-    width: 180px;
-    border-radius: 20px;
-    /* height: 70px; */
- }
-  
+.pie-educator-stats {
+  padding: clamp(18px, 3vw, 32px);
+  border: 3px solid #183047;
+  background: #fff6df;
+  box-shadow: 4px 4px 0 #183047;
+}
+
+.pie-educator-stats h2 {
+  margin: 0 0 16px;
+  font-size: 1.25rem;
+}
+
+.pie-educator-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.pie-educator-stats__grid > div {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-left: 4px solid #f3bc4f;
+  background: #deeff8;
+}
+
+.pie-educator-stats dt {
+  font-weight: 650;
+}
+
+.pie-educator-stats dd {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.pie-educator .pie-educator-stats p {
+  margin: 0;
+}

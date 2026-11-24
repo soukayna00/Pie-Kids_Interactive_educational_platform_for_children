@@ -1,106 +1,92 @@
-import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../apiBase.js';
+import React, { useContext, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import '../Register/Register.css';
 import './login.css';
 
-const Login = () => {
+export default function Login() {
   const navigate = useNavigate();
   const { setAuthState } = useContext(AuthContext);
+  const submitting = useRef(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
 
-  const [formData, setFormData] = useState({
-    email: '',
-    motDePasse: '',
-  });
-  const [error, setError] = useState(null);
+  async function handleSubmit(event) {
+    event.preventDefault();
+    if (submitting.current) return;
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    const credentials = Object.fromEntries(new FormData(event.currentTarget));
+    submitting.current = true;
+    setPending(true);
+    setError('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
     try {
-      const response = await fetch('/Etudiants/login', {
+      const response = await fetch(`${API_BASE_URL}/Etudiants/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
       });
       const data = await response.json();
 
-      if (response.ok) {
-        // Save token to localStorage
-        localStorage.setItem('token', data.token);
-
-        // Log token and user data
-        console.log('Token:', data.token);
-        console.log('User Data:', data);
-
-        // Update auth state to trigger re-render
-        setAuthState({
-          isAuthenticated: true,
-          id: data.id, 
-          name: data.name,
-          role: data.role,
-        });
-
-        // Navigate based on user role
-        if (data.role === 'Enseignant') {
-          navigate('/home'); 
-        } else if (data.role === 'Etudiant') {
-          navigate('/student'); 
-        } else {
-          // Handle unexpected role
-          console.error('Unexpected role:', data.role);
-          setError('Unexpected role encountered.');
-        }
-      } else {
-        // Handle login error
-        console.error('Login failed:', data.message);
-        setError(data.message || 'Login failed. Please try again.');
+      if (!response.ok) {
+        setError(data.message || 'Sign-in failed. Please try again.');
+        return;
       }
-    } catch (error) {
-      console.error('Error:', error);
-      setError('An error occurred. Please try again.');
+
+      const { token, id, name, role } = data;
+      const destination = role === 'Enseignant' ? '/home' : '/student';
+      if (!token || (role !== 'Enseignant' && role !== 'Etudiant')) {
+        setError('We couldn’t sign in to this account.');
+        return;
+      }
+
+      localStorage.setItem('token', token);
+      setAuthState({ isAuthenticated: true, id, name, role });
+      navigate(destination);
+    } catch {
+      setError('We couldn’t sign you in. Please try again.');
+    } finally {
+      submitting.current = false;
+      setPending(false);
     }
-  };
+  }
 
   return (
-    <div className='containers-regist'>
-      <div className='header-money'>
-        <img id='image-moneys' src='/assets/coin.png' alt='Header' />
-      </div>
-      <div id='form-registers'>
-        <form onSubmit={handleSubmit}>
-          <h2>Good to see you again!</h2>
-          {error && <p className="error">{error}</p>}
-          <div>
-            <label>Your Email:</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
+    <main className="pie-register pie-login">
+      <div className="pie-register__layout">
+        <section className="pie-register__panel" aria-labelledby="login-title">
+          <div className="pie-register__heading">
+            <h1 id="login-title">Welcome Back</h1>
+            <img src="/assets/coin.png" alt="" />
           </div>
-          <div>
-            <label>Your Password:</label>
-            <input
-              type="password"
-              name="motDePasse"
-              value={formData.motDePasse}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <button type="submit">Connect</button>
-        </form>
-      </div>
-      <div className='test'><img id='thekid' src='/assets/peach.png' alt='Kids' /></div>
-    </div>
-  );
-};
+          <p>Sign in to continue your money lessons.</p>
 
-export default Login;
+          <form onSubmit={handleSubmit}>
+            <label>
+              Email
+              <input name="email" type="email" autoComplete="username" required />
+            </label>
+            <label>
+              Password
+              <input name="motDePasse" type="password" autoComplete="current-password" required />
+            </label>
+
+            {error && <p className="pie-register__error" role="alert">{error}</p>}
+            <button type="submit" disabled={pending}>
+              {pending ? 'Signing in…' : 'Sign In'}
+            </button>
+          </form>
+
+          <p className="pie-register__signin">
+            New to PIE KIDZ? <Link to="/register">Create an account</Link>
+          </p>
+        </section>
+
+        <div className="pie-register__art pie-login__art" aria-hidden="true">
+          <img src="/assets/peach.png" alt="" />
+        </div>
+      </div>
+    </main>
+  );
+}

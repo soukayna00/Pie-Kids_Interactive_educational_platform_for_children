@@ -1,11 +1,59 @@
-.sidebar{
-    /* background-color: #007bff;  */
-    background-image: url('../../../../public/assets/pattern.png'); 
-    background-size: cover; 
+.pie-teacher-nav {
+  box-sizing: border-box;
+  align-self: start;
+  width: 100%;
+  padding: 18px;
+  border: 2px solid #183047;
+  background: #183047;
+  color: #fff6df;
+  font-family: system-ui, sans-serif;
 }
-.sidebar li{
-    color: red;
+
+.pie-teacher-nav h2 {
+  margin: 0 0 12px;
+  color: inherit;
+  font-size: 1rem;
 }
-.brand h2{
-    color: red;
+
+.pie-teacher-nav ul {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pie-teacher-nav li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pie-teacher-nav a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 9px;
+  color: inherit;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.pie-teacher-nav a:is(:hover, [aria-current]) {
+  background: #f3bc4f;
+  color: #183047;
+}
+
+.pie-teacher-nav a:focus-visible {
+  outline: 2px solid #fff6df;
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  .pie-teacher-nav ul {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
 }

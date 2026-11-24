@@ -1,0 +1,41 @@
+services:
+  frontend:
+    build: ./front-end
+    environment:
+      VITE_USE_POLLING: "true"
+    volumes:
+      - ./front-end/src:/app/src
+      - ./front-end/public:/app/public
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - backend
+
+  backend:
+    build: ./Back-end
+    environment:
+      PORT: "4000"
+      MONGO_url: "${PIE_KIDS_MONGO_URL:-mongodb://mongo:27017/pie_kids}"
+      JWT_SECRET: "${PIE_KIDS_JWT_SECRET:?Set PIE_KIDS_JWT_SECRET in the root .env}"
+      JWT_PRIVATEKEY: "${PIE_KIDS_JWT_SECRET:?Set PIE_KIDS_JWT_SECRET in the root .env}"
+    ports:
+      - "127.0.0.1:4000:4000"
+    volumes:
+      - uploads:/app/Back-end/uploads
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  mongo:
+    image: mongo:8.0
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ ping: 1 }).ok === 1 ? quit(0) : quit(1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  mongo-data:
+  uploads:

@@ -47,10 +47,6 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'L\'email ou le mot de passe est incorrect.' });
     }
 
-    // Log the stored password and the one being compared
-    console.log(`Stored password: ${user.motDePasse}`);
-    console.log(`Provided password: ${motDePasse}`);
-
     // Compare the provided password with the stored hashed password
     const isPasswordValid = await bcrypt.compare(motDePasse, user.motDePasse);
     if (!isPasswordValid) {
@@ -64,7 +60,7 @@ router.post('/login', async (req, res) => {
     res.status(200).json({
       token,
       id: user._id,
-      name: user.name,
+      name: user.nom,
       role: user.role
     });
   } catch (error) {

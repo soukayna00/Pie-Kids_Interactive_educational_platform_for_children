@@ -4,9 +4,9 @@ const mongoose=require("mongoose");
 const dotenv=require("dotenv");
 const cors =require('cors');
 const cookieParser =require('cookie-parser');
-const path = require('path');
-const authMiddleware = require('../Back-end/Middleware/authMiddleware');
-const jwt = require('jsonwebtoken');
+const { mkdirSync } = require('node:fs');
+const { uploadDirectory } = require('./uploadDirectory');
+const authMiddleware = require('./Middleware/authMiddleware');
 const router = express.Router();
 
 
@@ -35,89 +35,82 @@ const CoursRoutes=require('./Routes/CoursRoutes');
 const TrancheAgeRoutes = require('./Routes/TrancheAgeRoutes');  
 
 
-const app = express();
+dotenv.config();
 
+const app = express();
+const production = process.env.NODE_ENV === 'production';
+const frontendOrigins = (process.env.PIE_KIDS_FRONTEND_ORIGIN || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 app.use(express.json());
-app.use(cors())
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(cors({ origin: frontendOrigins.length ? frontendOrigins : !production }));
+mkdirSync(uploadDirectory(), { recursive: true });
+app.use('/uploads', express.static(uploadDirectory(), {
+  index: false,
+  setHeaders(res) {
+    res.set('Content-Security-Policy', 'sandbox');
+    res.set('X-Content-Type-Options', 'nosniff');
+  },
+}));
 
-app.use('/Etudiants',EtudiantRoutes);
-app.use('/Enseignant',EnseignantRoutes);
-app.use('/Utilisateurs',utilisateurRoutes);
+// The hosted app only exposes the account and catalog routes it uses.
+if (production) {
+  app.use((req, res, next) => {
+    const pathname = req.path.toLowerCase().replace(/\/+$/, '');
+    const read = req.method === 'GET' || req.method === 'HEAD';
+    const publicPaths = {
+      '/etudiants': req.method === 'POST' && ['/etudiants/login', '/etudiants/register'].includes(pathname),
+      '/enseignant': req.method === 'POST' && pathname === '/enseignant/register-enseignant',
+      '/utilisateurs': false,
+      '/chapitres': false,
+      '/competences': read && pathname === '/competences/all',
+      '/trancheage': read && pathname === '/trancheage',
+      '/quiz': (read || req.method === 'POST') && pathname === '/quiz',
+    };
+    const prefix = '/' + pathname.split('/')[1];
+    if (Object.hasOwn(publicPaths, prefix) && !publicPaths[prefix]) {
+      return res.status(404).json({ message: 'Not found' });
+    }
+    next();
+  });
+}
+
+app.use('/Etudiants', EtudiantRoutes);
+app.use('/Enseignant', EnseignantRoutes);
+app.use('/Utilisateurs', utilisateurRoutes);
 app.use('/chapitres', ChapitresRoutes);
 app.use('/competences', CompetencesRoutes);
 app.use('/quiz', QuizRoutes);
 app.use('/cours', CoursRoutes);
 app.use('/trancheAge', TrancheAgeRoutes);
 
+app.get('/health', (_req, res) => {
+  const ready = mongoose.connection.readyState === 1;
+  res.status(ready ? 200 : 503).json({ ready });
+});
 
-// Middleware to verify JWT token
-// Middleware to verify JWT token
-const verifyToken = (req, res, next) => {
-  const token = req.headers.authorization;
-
-  if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
-  }
-
-  // Verify token
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-    req.user = decoded; // Attach decoded payload to request object
-    next(); // Continue to the next middleware or route handler
-  });
-};
-
-app.get('/verify-token', verifyToken, (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ error: 'Authentication failed' });
-  }
-
+app.get('/verify-token', authMiddleware, (req, res) => {
+  res.set('Cache-Control', 'no-store');
   res.json({
     isAuthenticated: true,
-    id: req.user._id,
-    name: req.user.nom,
-    role: req.user.role,
+    id: req.Utilisateur._id,
+    name: req.Utilisateur.nom,
+    role: req.Utilisateur.role,
   });
 });
 
 
 
 
-dotenv.config();
+const port = process.env.PORT || 4000;
 
-const PORT = process.env.PORT || 4000;
-const MONGO_url=process.env.MONGO_url;
-
-
-
-
-
-
-
-
-
-
-
-
-mongoose.connect(MONGO_url)
+mongoose.connect(process.env.MONGO_url)
   .then(() => {
-    console.log("Database connected successfully.");
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
+    app.listen(port, '0.0.0.0', () => console.log(`Server is running on port ${port}`));
   })
   .catch((error) => {
-    console.log('Error connecting to database:', error);
+    console.error('MongoDB startup failed:', error.name);
+    process.exitCode = 1;
   });
-
-
-
-
-
-
-
-

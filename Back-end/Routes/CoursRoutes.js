@@ -1,19 +1,81 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const Joi = require('joi');
+const { unlink } = require('node:fs/promises');
 const { Cours } = require('../Models/Cours');
 const Chapitre = require('../Models/Chapitre');
+const authMiddleware = require('../Middleware/authMiddleware');
+const { uploadDirectory } = require('../uploadDirectory');
 
+const publicCourseFields = '_id titre Thumbnail description chapitres trancheAge Competences quiz';
+
+function requireStudent(req, res, next) {
+    if (req.Utilisateur.role !== 'Etudiant') {
+        return res.status(403).json({ error: 'A student account is required.' });
+    }
+    next();
+}
+
+router.get('/mine', authMiddleware, requireStudent, async (req, res, next) => {
+    try {
+        const courses = await Cours.find({ Etudiants: req.Utilisateur._id })
+            .select('_id titre description')
+            .lean();
+        res.set('Cache-Control', 'no-store').json(courses);
+    } catch (error) {
+        next(error);
+    }
+});
+
+
+
+function requireTeacher(req, res, next) {
+    if (req.Utilisateur.role !== 'Enseignant') {
+        return res.status(403).json({ error: 'A teacher account is required.' });
+    }
+    next();
+}
+
+function ownedCourse(req) {
+    return { _id: req.params.id, enseignant: req.Utilisateur._id };
+}
+
+async function requireOwnedCourse(req, res, next) {
+    if (!/^[a-f\d]{24}$/i.test(req.params.id)) {
+        return res.status(400).json({ error: 'Invalid course ID.' });
+    }
+
+    try {
+        if (!await Cours.exists(ownedCourse(req))) {
+            return res.status(404).json({ error: 'Course not found.' });
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+router.get('/teaching', authMiddleware, requireTeacher, async (req, res, next) => {
+    try {
+        const courses = await Cours.find({ enseignant: req.Utilisateur._id })
+            .select('_id titre Thumbnail description Competences')
+            .populate('Competences', 'Titre')
+            .lean();
+        res.set('Cache-Control', 'no-store').json(courses);
+    } catch (error) {
+        next(error);
+    }
+});
 
 router.get('/:id', async (req, res) => {
     const _id = req.params.id;
     // console.log(`Fetching course data for courseId: ${_id}`); // Add this logging statement
     try {
         const course = await Cours.findById(_id)
-            .populate('enseignant')
+            .select(publicCourseFields)
             .populate('chapitres')
             .populate('trancheAge')
-            .populate('Etudiants')
             .populate('Competences')
             .populate('quiz');
         if (!course) {
@@ -31,10 +93,9 @@ router.get('/:id', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const courses = await Cours.find({})
-            .populate('enseignant')
+            .select(publicCourseFields)
             .populate('chapitres')
             .populate('trancheAge')
-            .populate('Etudiants')
             .populate('Competences')
             .populate('quiz');
         res.status(200).json(courses);
@@ -47,7 +108,7 @@ router.get('/', async (req, res) => {
 // Multer configuration
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/'); // Destination directory for uploaded files
+        cb(null, uploadDirectory());
     },
     filename: function (req, file, cb) {
         cb(null, Date.now() + '-' + file.originalname); // Rename the file if needed
@@ -56,130 +117,117 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// POST route to create a new course
-router.post('/', upload.single('Thumbnail'), async (req, res) => {
+const objectId = Joi.string().hex().length(24);
+const courseFields = Joi.object({
+    titre: Joi.string().trim(),
+    description: Joi.string().trim(),
+    trancheAge: objectId.allow(null),
+    Competences: Joi.array().items(objectId).unique(),
+});
+const createCourseFields = courseFields.fork(['titre', 'description'], (field) => field.required());
+const chapterFields = Joi.object({
+    titre: Joi.string().trim().required(),
+    content: Joi.string().trim().required(),
+});
+
+function validateCourse(body = {}, schema) {
+    const { titre, description, trancheAge, Competences } = body;
+    let skills = Competences;
+    if (typeof skills === 'string') {
+        try {
+            skills = JSON.parse(skills);
+        } catch {
+            return { error: { message: 'Competences must contain a JSON array of skill IDs.' } };
+        }
+    }
+    return schema.validate({
+        titre,
+        description,
+        trancheAge: trancheAge === '' ? null : trancheAge,
+        Competences: skills,
+    });
+}
+
+async function rejectInvalidForm(res, error, files = [], status = 400) {
+    await Promise.allSettled(files.map((file) => unlink(file.path)));
+    return res.status(status).json({ message: error.message });
+}
+
+router.post('/', authMiddleware, requireTeacher, upload.single('Thumbnail'), async (req, res, next) => {
     try {
-        // Log the request body
-        console.log('Request Body:', req.body);
-        // Log the uploaded file
-        console.log('Uploaded File:', req.file);
+        const { error, value } = validateCourse(req.body, createCourseFields);
+        if (error) return await rejectInvalidForm(res, error, req.file ? [req.file] : []);
 
-        const { titre, description, trancheAge, Competences } = req.body;
-        const competencesArray = Array.isArray(Competences) ? Competences : JSON.parse(Competences);
-
-        const newCourse = new Cours({
-            titre,
-            description,
-            trancheAge,
-            Competences: competencesArray,
-            Thumbnail: req.file ? req.file.path : null,
+        const course = await Cours.create({
+            ...value,
+            enseignant: req.Utilisateur._id,
+            Thumbnail: req.file ? `uploads/${req.file.filename}` : null,
         });
-
-        const savedCourse = await newCourse.save();
-        res.status(201).json(savedCourse);
+        res.status(201).json(course);
     } catch (error) {
-        console.error('Error creating course:', error);
-        res.status(400).json({ message: 'Failed to create course' });
+        next(error);
     }
 });
 
-// PATCH route to add a new chapter to a course
-router.patch('/:id/chapitres', upload.any('resources'), async (req, res) => {
+router.patch('/:id/chapitres', authMiddleware, requireTeacher, requireOwnedCourse, upload.array('resources'), async (req, res, next) => {
     try {
-        // Log the request body
-        console.log('Request Body:', req.body);
-        // Log the uploaded files
-        console.log('Uploaded Files:', req.files);
-
-        const { titre, content } = req.body;
-        const courseId = req.params.id;
-
-        const newChapter = new Chapitre({
-            titre,
-            content,
-            resources: req.files.map(file => ({ filename: file.filename })),
+        const { error, value } = chapterFields.validate({
+            titre: req.body?.titre,
+            content: req.body?.content,
         });
+        if (error) return await rejectInvalidForm(res, error, req.files);
 
-        const savedChapter = await newChapter.save();
-
-        const course = await Cours.findByIdAndUpdate(
-            courseId,
-            { $push: { chapitres: savedChapter._id } },
-            { new: true }
-        );
+        const chapter = await Chapitre.create({
+            ...value,
+            resources: req.files.map((file) => ({ filename: file.filename })),
+        });
+        const course = await Cours.findOneAndUpdate(
+            ownedCourse(req),
+            { $push: { chapitres: chapter._id } },
+            { new: true },
+        ).select(publicCourseFields);
 
         if (!course) {
-            return res.status(404).json({ error: 'Course not found' });
+            await Chapitre.deleteOne({ _id: chapter._id });
+            return await rejectInvalidForm(res, { message: 'Course not found' }, req.files, 404);
         }
-
-        res.status(200).json({ message: 'Chapter added successfully', course });
+        res.json({ message: 'Chapter added successfully', course });
     } catch (error) {
-        console.error('Error adding chapter to course:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        next(error);
     }
 });
 
-
-
-
-
-
-// const storage = multer.diskStorage({
-//     destination: function (req, file, cb) {
-//         cb(null, 'uploads/');
-//     },
-//     filename: function (req, file, cb) {
-//         cb(null, Date.now() + '-' + file.originalname);
-//     }
-// });
-// const upload = multer({ storage: storage });
-
-// PUT route to update a course
-router.put('/editCourse/:id', upload.single('Thumbnail'), async (req, res) => {
+router.put('/editCourse/:id', authMiddleware, requireTeacher, requireOwnedCourse, upload.single('Thumbnail'), async (req, res, next) => {
     try {
-        const courseId = req.params.id;
-        const updatedCourseData = req.body;
+        const files = req.file ? [req.file] : [];
+        const { error, value } = validateCourse(req.body, courseFields);
+        if (error) return await rejectInvalidForm(res, error, files);
 
-        // Log the incoming data for debugging
-        console.log('Updated Course Data:', updatedCourseData);
-        console.log('Uploaded File:', req.file);
+        const changes = Object.fromEntries(
+            Object.entries(value).filter(([, field]) => field !== undefined),
+        );
+        if (req.file) changes.Thumbnail = `uploads/${req.file.filename}`;
 
-        // If there's a file, add its path to the updated data
-        if (req.file) {
-            updatedCourseData.Thumbnail = req.file.path;
-        }
+        const course = await Cours.findOneAndUpdate(
+            ownedCourse(req), { $set: changes }, { new: true, runValidators: true },
+        ).select(publicCourseFields);
 
-        // Handle Competences array if necessary
-        if (updatedCourseData.Competences) {
-            updatedCourseData.Competences = Array.isArray(updatedCourseData.Competences) 
-                ? updatedCourseData.Competences 
-                : JSON.parse(updatedCourseData.Competences);
-        }
+        if (!course) return await rejectInvalidForm(res, { message: 'Course not found' }, files, 404);
 
-        const updatedCourse = await Cours.findByIdAndUpdate(courseId, updatedCourseData, { new: true });
-
-        if (!updatedCourse) {
-            return res.status(404).json({ message: 'Course not found' });
-        }
-
-        res.json({ message: 'Course updated successfully', course: updatedCourse });
+        res.json({ message: 'Course updated successfully', course });
     } catch (error) {
-        console.error('Error updating course:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        next(error);
     }
 });
-
 
 
 // delete 
 
 
 // DELETE route to delete a course by ID
-router.delete('/deleteCourse/:id', async (req, res) => {
+router.delete('/deleteCourse/:id', authMiddleware, requireTeacher, requireOwnedCourse, async (req, res) => {
     try {
-        const courseId = req.params.id;
-
-                const deletedCourse = await Cours.findByIdAndDelete(courseId);
+        const deletedCourse = await Cours.findOneAndDelete(ownedCourse(req));
 
         if (!deletedCourse) {
             return res.status(404).json({ message: 'Course not found' });
@@ -193,44 +241,23 @@ router.delete('/deleteCourse/:id', async (req, res) => {
 });
 
 
-// cousese ->enroll 
-
-// const isAuthenticated = (req, res, next) => {
-//     if (req.isAuthenticated()) {
-//         return next();
-//     }
-//     res.status(401).send('User not authenticated');
-// };
-
-router.post('/enroller/:id', async (req, res) => {
-    const courseId = req.params.id;
-    const { userId } = req.body;
+router.post('/enroller/:id', authMiddleware, requireStudent, async (req, res, next) => {
+    if (!/^[a-f\d]{24}$/i.test(req.params.id)) {
+        return res.status(400).json({ error: 'Invalid course ID.' });
+    }
 
     try {
-        const course = await Cours.findById(courseId);
-        if (!course) {
-            return res.status(404).send('Course not found');
+        const result = await Cours.updateOne(
+            { _id: req.params.id },
+            { $addToSet: { Etudiants: req.Utilisateur._id } },
+        );
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'Course not found.' });
         }
-
-        // Check if the user is already enrolled
-        const isEnrolled = course.Etudiants.includes(userId);
-        if (isEnrolled) {
-            console.log(userId);
-            // Redirect the user to '/student'
-            return res.redirect('/student');
-        }
-
-        course.Etudiants.push(userId);
-
-        // Save the updated course document
-        await course.save();
-
-        res.status(200).send('User enrolled successfully');
+        res.json({ enrolled: true });
     } catch (error) {
-        console.error('Error enrolling user:', error);
-        res.status(500).send('Error enrolling user');
+        next(error);
     }
 });
-
 
 module.exports = router;

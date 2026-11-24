@@ -1,3 +1,5 @@
+import { API_BASE_URL } from '../../apiBase.js';
+import DOMPurify from 'dompurify';
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
@@ -14,7 +16,7 @@ const CourseDashboard = () => {
 
   const fetchCourseDetails = async () => {
     try {
-      const response = await axios.get(`http://localhost:4000/cours/${id}`);
+      const response = await axios.get(`${API_BASE_URL}/cours/${id}`);
       setCourse(response.data);
     } catch (error) {
       console.error('Error fetching course details:', error);
@@ -46,14 +48,14 @@ const CourseDashboard = () => {
           {selectedChapitre && (
             <div className="chapitre-content">
               <h2>{selectedChapitre.titre}</h2>
-              <div dangerouslySetInnerHTML={{ __html: selectedChapitre.content }}></div>
+              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedChapitre.content ?? '') }}></div>
               {selectedChapitre.resources && selectedChapitre.resources.length > 0 && (
                 <div className="resources">
                   <h3>Resources</h3>
                   <ul>
                     {selectedChapitre.resources.map(resource => (
                       <li key={resource._id}>
-                        <a href={`http://localhost:4000/uploads/${resource.filename}`} download={resource.filename} className="download-button">
+                        <a href={`${API_BASE_URL}/uploads/${resource.filename}`} download={resource.filename} className="download-button">
                           Download 
                         </a>
                       </li>

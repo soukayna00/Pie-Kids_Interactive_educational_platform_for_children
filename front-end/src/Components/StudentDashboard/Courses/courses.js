@@ -1,88 +1,74 @@
+import { API_BASE_URL } from '../../../apiBase.js';
 import React, { useEffect, useState } from 'react';
-import Sidebar from '../Sidebar/sidebar';
-import './courses.css';
 import { Link } from 'react-router-dom';
-import { faEdit, faInfoCircle, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import axios from 'axios';
+import { useAuth } from '../../../context/AuthContext';
+import './courses.css';
 
 export default function Courses() {
-    const [courses, setCourses] = useState([]);
-    const [error, setError] = useState('');
+  const { authState } = useAuth();
+  const { id, isAuthenticated, role } = authState;
+  const [result, setResult] = useState(null);
+  const [attempt, setAttempt] = useState(0);
 
-    useEffect(() => {
-        fetchCourses();
-    }, []);
+  useEffect(() => {
+    if (!isAuthenticated || !id || role !== 'Etudiant') return;
 
-    const fetchCourses = () => {
-        fetch('http://localhost:4000/cours')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to fetch courses');
-                }
-                return response.json();
-            })
-            .then(data => {
-                setCourses(data);
-            })
-            .catch(error => {
-                console.error('Error fetching courses:', error);
-                setError('Error fetching courses');
-            });
-    };
+    const controller = new AbortController();
 
-    const handleDelete = (id) => {
-        axios.delete(`http://localhost:4000/cours/deleteCourse/${id}`)
-            .then(() => {
-                console.log('Course deleted successfully:', id);
-                setCourses(prevCourses => prevCourses.filter(course => course._id !== id));
-            })
-            .catch(error => {
-                console.error('Error deleting course:', error);
-                setError('Error deleting course');
-            });
-    };
-    
-    return (
-        <div className="container">
-            <div className="row">
-                <div className="col-md-2">
-                    <Sidebar />
-                </div>
-                <div className="col-md-10">
-                    <div className="courses-container">
-                        {courses.map(course => (
-                            <div key={course._id} className="course-card">
-                                <img 
-                                    src={`http://localhost:4000/${course.Thumbnail}`} 
-                                    alt="Course Thumbnail" 
-                                    className="course-thumbnail" 
-                                />
-                                <div className="course-info">
-                                    <h5 className="course-title">{course.titre}</h5>
-                                    <p className="course-description">{course.description}</p>
-                                    <div className="competences">
-                                        {course.Competences.map(competence => (
-                                            <span key={competence._id} className="competence">{competence.Titre}</span>
-                                        ))}
-                                    </div>
-                                    <div className="action-buttons">
-                                        <Link to={`/cours/detailCourse/${course._id}`} className="action-btn detail-btn">
-                                            <FontAwesomeIcon icon={faInfoCircle} /> Course detail
-                                        </Link>
-                                        <Link to={`/cours/editCourse/${course._id}`} className="action-btn edit-btn">
-                                            <FontAwesomeIcon icon={faEdit} />
-                                        </Link>
-                                        <button onClick={() => handleDelete(course._id)} className='btn delete-btn' >
-                                            <FontAwesomeIcon icon={faTrashAlt} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
+    async function loadCourses() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/cours/mine`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error('Courses unavailable');
+        const enrolled = await response.json();
+        if (!controller.signal.aborted) setResult({ id, attempt, enrolled });
+      } catch {
+        if (!controller.signal.aborted) setResult({ id, attempt, failed: true });
+      }
+    }
+
+    loadCourses();
+    return () => controller.abort();
+  }, [id, isAuthenticated, role, attempt]);
+
+  const current = result && result.id === id && result.attempt === attempt ? result : null;
+
+  return (
+    <section id="my-courses" className="pie-student__courses" aria-labelledby="my-courses-title">
+      <h2 id="my-courses-title">My Courses</h2>
+
+      {!isAuthenticated || !id ? (
+        <p><Link to="/login">Sign in</Link> to see your enrolled courses.</p>
+      ) : role !== 'Etudiant' ? (
+        <p>Sign in with a student account to see your enrolled courses.</p>
+      ) : !current ? (
+        <p role="status">Loading your courses…</p>
+      ) : current.failed ? (
+        <div>
+          <p role="alert">We couldn’t load your courses.</p>
+          <button
+            className="pie-student__button"
+            type="button"
+            onClick={() => setAttempt((previous) => previous + 1)}
+          >
+            Try Again
+          </button>
         </div>
-    );
+      ) : current.enrolled.length === 0 ? (
+        <p>You haven’t enrolled in any courses yet. Choose one from Explore Lessons to get started.</p>
+      ) : (
+        <ul className="pie-student__list" role="list">
+          {current.enrolled.map((course) => (
+            <li key={course._id}>
+              <h3>{course.titre}</h3>
+              <p>{course.description}</p>
+              <Link to={`/courses/${course._id}/dashboard`}>Open Course</Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
 }

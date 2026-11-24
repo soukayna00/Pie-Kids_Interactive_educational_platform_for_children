@@ -1,155 +1,169 @@
-import React, { useState } from 'react';
+import { API_BASE_URL } from '../../../apiBase.js';
+import React, { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from '../Sidebar/sidebar';
-import './quiz.css'
+import './quiz.css';
+
+const newQuestion = () => ({ text: '', explanation: '', options: ['', ''], correct: null });
 
 export default function QuizForm() {
-    const [quizData, setQuizData] = useState({
-        title: '',
-        description: '',
-        questions: [
-            {
-                text: '',
-                options: [
-                    { text: '', isCorrect: false }
-                ],
-                explanation: ''
-            }
-        ]
-    });
+  const [questions, setQuestions] = useState(() => [newQuestion()]);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState('');
+  const submitting = useRef(false);
 
-    const handleQuizChange = e => {
-        const { name, value } = e.target;
-        setQuizData(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
+  function updateQuestion(index, update) {
+    setQuestions((previous) => previous.map((question, position) =>
+      position === index ? update(question) : question
+    ));
+  }
+
+  async function submit(event) {
+    event.preventDefault();
+    if (submitting.current) return;
+
+    const form = event.currentTarget;
+    const fields = new FormData(form);
+    const title = String(fields.get('title')).trim();
+    setError('');
+    setSaved('');
+
+    if (!title || questions.some((question) =>
+      !question.text.trim() || question.correct === null ||
+      question.options.some((option) => !option.trim())
+    )) {
+      setError('Enter a quiz title, complete every question and answer, and mark one correct answer per question.');
+      return;
+    }
+
+    const quiz = {
+      title,
+      description: String(fields.get('description')).trim(),
+      questions: questions.map(({ text, explanation, options, correct }) => ({
+        text: text.trim(),
+        explanation: explanation.trim(),
+        options: options.map((option, index) => ({
+          text: option.trim(),
+          isCorrect: index === correct,
+        })),
+      })),
     };
 
-    const handleQuestionChange = (index, e) => {
-        const { name, value } = e.target;
-        const updatedQuestions = quizData.questions.map((question, qIndex) => {
-            if (index === qIndex) {
-                return { ...question, [name]: value };
-            }
-            return question;
-        });
-        setQuizData(prevState => ({
-            ...prevState,
-            questions: updatedQuestions
-        }));
-    };
+    submitting.current = true;
+    setPending(true);
+    try {
+      await axios.post(`${API_BASE_URL}/quiz`, quiz, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      form.reset();
+      setQuestions([newQuestion()]);
+      setSaved(title);
+    } catch {
+      setError('We couldn’t save your quiz. Your draft is still here. Please try again.');
+    } finally {
+      submitting.current = false;
+      setPending(false);
+    }
+  }
 
-    const handleOptionChange = (qIndex, oIndex, e) => {
-        const { name, value, type, checked } = e.target;
-        const updatedOptions = quizData.questions[qIndex].options.map((option, optIndex) => {
-            if (oIndex === optIndex) {
-                return { ...option, [name]: type === 'checkbox' ? checked : value };
-            }
-            return option;
-        });
-        const updatedQuestions = quizData.questions.map((question, questionIndex) => {
-            if (qIndex === questionIndex) {
-                return { ...question, options: updatedOptions };
-            }
-            return question;
-        });
-        setQuizData(prevState => ({
-            ...prevState,
-            questions: updatedQuestions
-        }));
-    };
+  return (
+    <main className="pie-add-course pie-quiz-builder">
+      <div className="pie-add-course__layout">
+        <Sidebar />
+        <section className="pie-add-course__panel" aria-labelledby="quiz-builder-title">
+          <h1 id="quiz-builder-title">Create a Quiz</h1>
+          <form onSubmit={submit}>
+            <fieldset className="pie-quiz-builder__draft" disabled={pending} aria-label="Quiz draft">
+              <label>
+                Quiz title
+                <input name="title" required />
+              </label>
+              <label>
+                Description (optional)
+                <textarea name="description" rows={3} />
+              </label>
 
-    const addQuestion = () => {
-        setQuizData(prevState => ({
-            ...prevState,
-            questions: [...prevState.questions, { text: '', options: [{ text: '', isCorrect: false }], explanation: '' }]
-        }));
-    };
+              {questions.map((question, qIndex) => (
+                <fieldset key={qIndex} className="pie-quiz-builder__question">
+                  <legend>Question {qIndex + 1}</legend>
+                  <label>
+                    Question text
+                    <input
+                      value={question.text}
+                      onChange={(event) => {
+                        const { value } = event.target;
+                        updateQuestion(qIndex, (current) => ({ ...current, text: value }));
+                      }}
+                      required
+                    />
+                  </label>
 
-    const addOption = qIndex => {
-        const updatedQuestions = quizData.questions.map((question, index) => {
-            if (index === qIndex) {
-                return { ...question, options: [...question.options, { text: '', isCorrect: false }] };
-            }
-            return question;
-        });
-        setQuizData(prevState => ({
-            ...prevState,
-            questions: updatedQuestions
-        }));
-    };
-
-    const handleSubmit = async e => {
-        e.preventDefault();
-        try {
-            const response = await axios.post('http://localhost:4000/quiz', quizData);
-            console.log('Quiz created successfully:', response.data);
-            // Reset form data
-            setQuizData({
-                title: '',
-                description: '',
-                questions: [
-                    {
-                        text: '',
-                        options: [
-                            { text: '', isCorrect: false }
-                        ],
-                        explanation: ''
-                    }
-                ]
-            });
-        } catch (error) {
-            console.error('Error creating quiz:', error);
-        }
-    };
-
-    return (
-      <div className='container'>
-        <Sidebar/>
-        <form onSubmit={handleSubmit}>
-            <div>
-                <label>Title:</label>
-                <input type="text" name="title" value={quizData.title} onChange={handleQuizChange} />
-            </div>
-            <div>
-                <label>Description:</label>
-                <textarea name="description" value={quizData.description} onChange={handleQuizChange}></textarea>
-            </div>
-            {quizData.questions.map((question, qIndex) => (
-                <div key={qIndex}>
-                    <label>Question {qIndex + 1}:</label>
-                    <input type="text" name="text" value={question.text} onChange={e => handleQuestionChange(qIndex, e)} />
-                    {question.options.map((option, oIndex) => (
-                        <div key={oIndex}>
-                            <label>Option {oIndex + 1}:</label>
-                            <input
-                                type="text"
-                                name="text"
-                                value={option.text}
-                                onChange={e => handleOptionChange(qIndex, oIndex, e)}
-                            />
-                            <label>
-                                Correct:
-                                <input
-                                    type="checkbox"
-                                    name="isCorrect"
-                                    checked={option.isCorrect}
-                                    onChange={e => handleOptionChange(qIndex, oIndex, e)}
-                                />
-                            </label>
-                        </div>
-                    ))}
-                    <button type="button" onClick={() => addOption(qIndex)}>Add Option</button>
-                    <div>
-                        <label>Explanation:</label>
-                        <input type="text" name="explanation" value={question.explanation} onChange={e => handleQuestionChange(qIndex, e)} />
+                  {question.options.map((option, oIndex) => (
+                    <div className="pie-quiz-builder__option" key={oIndex}>
+                      <label>
+                        Answer {oIndex + 1}
+                        <input
+                          value={option}
+                          onChange={(event) => {
+                            const { value } = event.target;
+                            updateQuestion(qIndex, (current) => ({
+                              ...current,
+                              options: current.options.map((item, index) => index === oIndex ? value : item),
+                            }));
+                          }}
+                          required
+                        />
+                      </label>
+                      <label className="pie-quiz-builder__correct">
+                        <input
+                          type="radio"
+                          name={`correct-${qIndex}`}
+                          aria-label={`Mark answer ${oIndex + 1} as correct`}
+                          checked={question.correct === oIndex}
+                          onChange={() => updateQuestion(qIndex, (current) => ({ ...current, correct: oIndex }))}
+                          required
+                        />
+                        Correct
+                      </label>
                     </div>
-                </div>
-            ))}
-            <button type="button" onClick={addQuestion}>Add Question</button>
-            <button type="submit">Submit Quiz</button>
-        </form>
-        </div>
-    );
+                  ))}
+
+                  <button type="button" className="pie-quiz-builder__secondary" onClick={() =>
+                    updateQuestion(qIndex, (current) => ({ ...current, options: [...current.options, ''] }))
+                  }>
+                    Add Answer
+                  </button>
+
+                  <label>
+                    Explanation (optional)
+                    <textarea
+                      rows={2}
+                      value={question.explanation}
+                      onChange={(event) => {
+                        const { value } = event.target;
+                        updateQuestion(qIndex, (current) => ({ ...current, explanation: value }));
+                      }}
+                    />
+                  </label>
+                </fieldset>
+              ))}
+
+              <div className="pie-add-course__actions">
+                <button type="button" className="pie-quiz-builder__secondary" onClick={() =>
+                  setQuestions((previous) => [...previous, newQuestion()])
+                }>
+                  Add Question
+                </button>
+                <button type="submit">{pending ? 'Saving…' : 'Save Quiz'}</button>
+              </div>
+            </fieldset>
+            {error && <p className="pie-add-course__error" role="alert">{error}</p>}
+            {saved && <p role="status">“{saved}” was saved. <Link to="/student/quiz">View Student Quizzes</Link></p>}
+          </form>
+        </section>
+      </div>
+    </main>
+  );
 }
